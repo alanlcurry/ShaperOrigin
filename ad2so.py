@@ -1,10 +1,49 @@
 import xml.etree.ElementTree as ET
 import argparse
-import os
 
-"""
-Defines and gets the command line options
-"""              
+tree = None
+
+def svg_svg(elem):
+
+    global tree
+
+    elem.set("xmlns:shaper","http://www.shapertools.com/namespaces/shaper")
+
+def svg_path(elem):
+
+    global tree
+
+    try:
+        serifId = elem.attrib["{http://www.serif.com/}id"]
+        serifIdWords = serifId.split()
+        shaperAttrs = [s for s in serifIdWords if "shaper:" in s]
+        for shaperAttr in shaperAttrs:
+            shaperList = shaperAttr.split("=")
+            elem.set(shaperList[0],shaperList[1])
+    except:
+        pass
+
+def svg_g(elem):
+
+    global tree
+    pass
+
+def svg_g_frame_text_tool(elem):
+    
+    global tree
+
+    serifId = elem.attrib["{http://www.serif.com/}id"]
+    serifIdWords = serifId.split()
+    shaperAttrs = [s for s in serifIdWords if "shaper:" in s]
+
+    for child in elem.iter():
+   
+        if "path" in child.tag[-4:]:
+            for shaperAttr in shaperAttrs:
+                shaperList = shaperAttr.split("=")
+                child.set(shaperList[0],shaperList[1])
+        
+
 
 # Define and get the command line options
 
@@ -14,8 +53,8 @@ parser = argparse.ArgumentParser(description="Shaper Origin Support for AD2")
 
 # Add the argument options
 
-parser.add_argument("-in","--inFile",help="input SVG file",action="store")
-parser.add_argument("-out","--outFile",help="output SVG file",action="store")
+parser.add_argument("-in","--inFile",help="input SVG file",action="store",required=True)
+parser.add_argument("-out","--outFile",help="output SVG file",action="store",required=True)
 
 # read arguments from the command line
 
@@ -33,39 +72,15 @@ tree = ET.parse(args.inFile)
 
 for elem in tree.iter():
     if "svg" in elem.tag[-3:]:
-        elem.set("xmlns:shaper","http://www.shapertools.com/namespaces/shaper")
-    if ("path" in elem.tag[-4:]):
+        svg_svg(elem)
+    if "path" in elem.tag[-4:]:
+        svg_path(elem)     
+    if "g" in elem.tag[-1:]:
         try:
             serifId = elem.attrib["{http://www.serif.com/}id"]
-            serifIdWords = serifId.split()
-            shaperAttrs = [s for s in serifIdWords if "so:" in s]
-            for shaperAttr in shaperAttrs:
-                shaperList = shaperAttr.split("=")
-                elem.set(shaperList[0],shaperList[1])
-        except:
-            continue
+            if "Frame Text Tool" in serifId:
+                svg_g_frame_text_tool(elem)
+        except KeyError: 
+            pass
 
 tree.write(args.outFile)
-
-# tempList = args.outFile.split(".")
-# tempOutFile = tempList[0] + "_temp." + tempList[1]
-# tree.write(tempOutFile)
-
-# with open(tempOutFile) as svgFileIn:
-
-#     svgFileOut = open(args.outFile,"+tw")
-
-#     lines = svgFileIn.read().splitlines()
-#     for line in lines:
-#         # print(line)
-#         if "svg:" in line:
-#             line = line.replace("svg:","")
-#         svgFileOut.write(line)
-    
-#     svgFileOut.close()
-
-# if os.path.exists(tempOutFile):
-#     os.remove(tempOutFile)
-# else:
-#     print(f"{tempOutFile} does not exist. This should not happen.")
-        
