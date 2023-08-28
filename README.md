@@ -8,6 +8,7 @@ ad2so.py applies Shaper Origin attributes to a Affinity Designer 2 exported SVG 
 ### Specifing Attributes in Affinity Designer 2 (AD2)
 
 To specify a Shaper Origin attribute, the attribute name and value is added to the objects layer name in Affinity Designer 2. Example:
+
 ![AD2 Layers](img/layers.png)
 
 When AD2 exports to SVG, the layer name is used as the id of the element and attribute serif:id is added with the layer name. Example:
