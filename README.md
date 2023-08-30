@@ -1,6 +1,6 @@
 # ad2so.py - Affinity Designer 2 Shaper Origin
 
-ad2so.py applies Shaper Origin attributes to a Affinity Designer 2 exported SVG file. This routine was inspired by the Shaper Community forum thread ![Depth encoding via Fusion360 (PLEASE LOCK THREAD)](https://community.shapertools.com/t/depth-encoding-via-fusion360-please-lock-thread/10075)
+ad2so.py applies Shaper Origin attributes to a Affinity Designer 2 exported SVG file. This routine was inspired by the Shaper Community forum thread [Depth encoding via Fusion360 (PLEASE LOCK THREAD)](https://community.shapertools.com/t/depth-encoding-via-fusion360-please-lock-thread/10075)
 
 ### Specifing Attributes in Affinity Designer 2
 
