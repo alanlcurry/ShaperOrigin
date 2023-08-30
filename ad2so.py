@@ -35,55 +35,76 @@
 
 import xml.etree.ElementTree as ET
 import argparse
+import sys
 
-tree = None
+gblTree = None
+gblShaperAttrs = None
+grpShaperAttrs = None
 
-def svg_add_xmlns(elem):
-    '''
-        Adds the Shaper Tools xml namespace to the SVG element.
-    '''
+nameSpaces = {
+                "w3":"http://www.w3.org/2000/svg",
+                "serif":"http://www.serif.com/",
+                "shaper":"http://www.shapertools.com/namespaces/shaper"
+            }
 
-    global tree
-
-    elem.set("xmlns:shaper","http://www.shapertools.com/namespaces/shaper")
-
-def svg_add_attribute(elem):
+def set_group_attributes(elem):
     '''
         Extracts and adds the shaper: attributes to the element.
     '''    
+    
+    # global gblTree
+    global grpShaperAttrs
 
-    global tree
+    serifNameSpace = "{" + nameSpaces["serif"] + "}id"
 
     try:
-        serifId = elem.attrib["{http://www.serif.com/}id"]
+        serifId = elem.attrib[serifNameSpace]
+        serifIdWords = serifId.split()
+        grpShaperAttrs = [s for s in serifIdWords if "shaper:" in s]
+        validate_shaper_attributes(grpShaperAttrs)
+    except KeyError:
+        grpShaperAttrs = None  
+
+def svg_add_xmlns(elem):
+
+    global gblTree
+
+    print(f"Adding xmlns:shaper={nameSpaces['shaper']} attribute to {elem.tag[-3:]} element....")
+    elem.set("xmlns:shaper",nameSpaces["shaper"])
+
+
+def svg_add_attribute(elem):
+    
+    global gblTree
+
+    serifNameSpace = "{" + nameSpaces["serif"] + "}id"
+
+    try:
+        serifId = elem.attrib[serifNameSpace]
         serifIdWords = serifId.split()
         shaperAttrs = [s for s in serifIdWords if "shaper:" in s]
+        validate_shaper_attributes(shaperAttrs)
         for shaperAttr in shaperAttrs:
             shaperList = shaperAttr.split("=")
             elem.set(shaperList[0],shaperList[1])
-    except:
-        pass
+    except KeyError:
+        if grpShaperAttrs:
+            for shaperAttr in grpShaperAttrs:
+                shaperList = shaperAttr.split("=")
+                elem.set(shaperList[0],shaperList[1])
+    finally:
+        if gblShaperAttrs:
+            for shaperAttr in gblShaperAttrs:
+                shaperList = shaperAttr.split("=")
+                elem.set(shaperList[0],shaperList[1])
 
-def svg_frame_text_tool(elem):
-    '''
-        Form text tool must be in a group. Extracts and adds the shaper: attributes 
-        to the child elements.
-        Yea, yea, I know.... there's some duplicate code. 
-    '''    
-    
-    global tree
+def validate_shaper_attributes(attrs):
 
-    serifId = elem.attrib["{http://www.serif.com/}id"]
-    serifIdWords = serifId.split()
-    shaperAttrs = [s for s in serifIdWords if "shaper:" in s]
+    # for attr in attrs:
+    #     print(attr)
+    pass
 
-    for child in elem.iter():
-        for shaperAttr in shaperAttrs:
-            shaperList = shaperAttr.split("=")
-            child.set(shaperList[0],shaperList[1])
-                
-
-
+ 
 # Define and get the command line options
 
 # initiate the parser
@@ -92,38 +113,41 @@ parser = argparse.ArgumentParser(description="Shaper Origin Support for AD2")
 
 # Add the argument options
 
-parser.add_argument("-in","--inFile",help="input SVG file",action="store",required=True)
-parser.add_argument("-out","--outFile",help="output SVG file",action="store",required=True)
+parser.add_argument("-I","--inFile",help="input SVG file",action="store",required=True)
+parser.add_argument("-O","--outFile",help="output SVG file",action="store",required=True)
+parser.add_argument("-G","--gblAttr",help="input global shaper attributes",action="store",required=False,nargs='*')
 
 # read arguments from the command line
 
 args = parser.parse_args()
 
+if args.gblAttr:
+    gblShaperAttrs = args.gblAttr
+    validate_shaper_attributes(gblShaperAttrs)
+
 # We think we should register some name spaces
 
-ET.register_namespace('',"http://www.w3.org/2000/svg")
-ET.register_namespace('serif',"http://www.serif.com/")
-ET.register_namespace('shaper',"http://www.shapertools.com/namespaces/shaper")
+ET.register_namespace('',nameSpaces["w3"])
+ET.register_namespace("serif",nameSpaces["serif"])
+ET.register_namespace("shaper",nameSpaces["shaper"])
 
-# Get the command line arguments
 
-tree = ET.parse(args.inFile)
+# Get the input file and parse the tree
+print(f"Reading and parsing {args.inFile}....")
+gblTree = ET.parse(args.inFile)
 
 # iterate through the elements
 
-for elem in tree.iter():
+for elem in gblTree.iter():
     # add the namespace
     if "svg" in elem.tag[-3:]:
         svg_add_xmlns(elem)
+    # group level? 
+    elif "g" in elem.tag[-1:]:
+        set_group_attributes(elem)
     else:
         # check and add the attributes
-        try:
-            serifId = elem.attrib["{http://www.serif.com/}id"]
-            if "Frame Text Tool" in serifId:
-                svg_frame_text_tool(elem)
-            else:
-                svg_add_attribute(elem)
-        except KeyError: 
-            pass
+        svg_add_attribute(elem)
 
-tree.write(args.outFile)
+print(f"Writing {args.outFile}....")
+gblTree.write(args.outFile)
