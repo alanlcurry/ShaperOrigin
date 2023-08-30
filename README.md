@@ -22,7 +22,11 @@ Example (scroll all the way to the right to see the shaper: attribute):
 
 ### Affinity Designer 2 Groups
 
-Shaper Origin attributes can be set at the group level. The attributes apply to only that group. Example: 
+Shaper Origin attributes can be set at the group level. The attributes only apply to that group of elements. Shaper: attributes specified on a specific layer will override the group level shaper: attributes.
+
+*Note: Frame Text Tool layers must be in a group for shaper: attributes to be specified for the text. 
+
+Example: 
 
 ![AD2 Groups](img/groups.png)
 
