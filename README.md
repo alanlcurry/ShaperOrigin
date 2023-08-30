@@ -1,9 +1,6 @@
-# ShaperOrigin
-Python scripts for the Shaper Origin
+# ad2so.py - Affinity Designer 2 Shaper Origin
 
-## ad2so.py - Affinity Designer 2
-
-ad2so.py applies Shaper Origin attributes to a Affinity Designer 2 exported SVG file.
+ad2so.py applies Shaper Origin attributes to a Affinity Designer 2 exported SVG file. This routine was inspired by the Shaper Community forum thread ![Depth encoding via Fusion360 (PLEASE LOCK THREAD)](https://community.shapertools.com/t/depth-encoding-via-fusion360-please-lock-thread/10075)
 
 ### Specifing Attributes in Affinity Designer 2
 
@@ -14,6 +11,7 @@ To specify a Shaper Origin attribute, the attribute name and value is added to t
 When AD2 exports to SVG, the layer name is used as the id of the element and attribute serif:id is added with the layer name. Example:
 
     <path id="Triangle---shaper:cutDepth-20mm" serif:id="Triangle - shaper:cutDepth=20mm" d="M1258.58,113.386L1383.31,340.157L1133.86,340.157L1258.58,113.386Z" style="fill:rgb(231,232,233);"/>
+
 
 When processing the AD2 exported SVG file, ad2so.py searches each element for all occurances of shaper: in the serif:id attribute. If found, the shaper: attribute(s) is added to the element.<br>
 Example (scroll all the way to the right to see the shaper: attribute):
