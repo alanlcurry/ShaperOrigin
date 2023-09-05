@@ -36,7 +36,6 @@ Shaper Origin attributes can be set at the global level. Global attributes are a
 
 Processing is peformed by executing the Python script with command line options. The command line options are as follows:  
 
-<code>
     options:
         -h, --help            show this help message and exit
         -I INFILE, --inFile INFILE
@@ -45,7 +44,7 @@ Processing is peformed by executing the Python script with command line options.
                         output SVG file
         -G [GBLATTR ...], --gblAttr [GBLATTR ...]
                         input global shaper attributes (optional)
-</code>
+
 
 Example invocations: 
 
