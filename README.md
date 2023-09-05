@@ -48,6 +48,6 @@ Processing is peformed by executing the Python script with command line options.
 
 Example invocations: 
 
-python3 ad2so.py -I Example.svg -O Example-Converted.svg                                                    << No global attributes 
-python3 ad2so.py -I Example.svg -O Example-Converted.svg -G shaper:cutDepth=15mm                            << With shaper: global attribute
-python3 ad2so.py -I Example.svg -O Example-Converted.svg -G shaper:cutDepth=15mm shaper:futureAttr=welcome  << This invocation demonstrates that multiple global shaper: attributes can be added. 
+    python3 ad2so.py -I Example.svg -O Example-Converted.svg                                                    << No global attributes 
+    python3 ad2so.py -I Example.svg -O Example-Converted.svg -G shaper:cutDepth=15mm                            << With shaper: global attribute
+    python3 ad2so.py -I Example.svg -O Example-Converted.svg -G shaper:cutDepth=15mm shaper:futureAttr=welcome  << This invocation demonstrates that multiple global shaper: attributes can be added. 
