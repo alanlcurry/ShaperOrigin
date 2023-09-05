@@ -28,5 +28,26 @@ Example:
 
 ![AD2 Groups](img/groups.png)
 
+### Global Attributes
+
+Shaper Origin attributes can be set at the global level. Global attributes are added to each element prior to shaper: attributes in AD2. Global attributes are specified on the command line. See below for more information. 
 
 
+### Processing
+
+Shaper Origin Support for AD2
+
+options:
+  -h, --help            show this help message and exit
+  -I INFILE, --inFile INFILE
+                        input SVG file
+  -O OUTFILE, --outFile OUTFILE
+                        output SVG file
+  -G [GBLATTR ...], --gblAttr [GBLATTR ...]
+                        input global shaper attributes (optional)
+
+Example invocations: 
+
+python3 ad2so.py -I Example.svg -O Example-Converted.svg                                                    << No global attributes 
+python3 ad2so.py -I Example.svg -O Example-Converted.svg -G shaper:cutDepth=15mm                            << With shaper: global attribute
+python3 ad2so.py -I Example.svg -O Example-Converted.svg -G shaper:cutDepth=15mm shaper:futureAttr=welcome  << This invocation demonstrates that multiple global shaper: attributes can be added. 

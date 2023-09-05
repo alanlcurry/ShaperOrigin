@@ -80,29 +80,27 @@ def svg_add_attribute(elem):
     serifNameSpace = "{" + nameSpaces["serif"] + "}id"
 
     try:
+        if gblShaperAttrs:
+            for shaperAttr in gblShaperAttrs:
+                shaperList = shaperAttr.split("=")
+                elem.set(shaperList[0],shaperList[1])
+
         serifId = elem.attrib[serifNameSpace]
         serifIdWords = serifId.split()
         shaperAttrs = [s for s in serifIdWords if "shaper:" in s]
-        validate_shaper_attributes(shaperAttrs)
+
         for shaperAttr in shaperAttrs:
             shaperList = shaperAttr.split("=")
             elem.set(shaperList[0],shaperList[1])
+
     except KeyError:
         if grpShaperAttrs:
             for shaperAttr in grpShaperAttrs:
                 shaperList = shaperAttr.split("=")
                 elem.set(shaperList[0],shaperList[1])
     finally:
-        if gblShaperAttrs:
-            for shaperAttr in gblShaperAttrs:
-                shaperList = shaperAttr.split("=")
-                elem.set(shaperList[0],shaperList[1])
+        pass
 
-def validate_shaper_attributes(attrs):
-
-    # for attr in attrs:
-    #     print(attr)
-    pass
 
  
 # Define and get the command line options
@@ -115,7 +113,7 @@ parser = argparse.ArgumentParser(description="Shaper Origin Support for AD2")
 
 parser.add_argument("-I","--inFile",help="input SVG file",action="store",required=True)
 parser.add_argument("-O","--outFile",help="output SVG file",action="store",required=True)
-parser.add_argument("-G","--gblAttr",help="input global shaper attributes",action="store",required=False,nargs='*')
+parser.add_argument("-G","--gblAttr",help="input global shaper attributes (optional)",action="store",required=False,nargs='*')
 
 # read arguments from the command line
 
