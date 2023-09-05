@@ -32,19 +32,20 @@ Example:
 
 Shaper Origin attributes can be set at the global level. Global attributes are added to each element prior to shaper: attributes in AD2. Global attributes are specified on the command line. See below for more information. 
 
-
 ### Processing
 
-Shaper Origin Support for AD2
+Processing is peformed by executing the Python script with command line options. The command line options are as follows:  
 
-options:
-  -h, --help            show this help message and exit
-  -I INFILE, --inFile INFILE
+<code>
+    options:
+        -h, --help            show this help message and exit
+        -I INFILE, --inFile INFILE
                         input SVG file
-  -O OUTFILE, --outFile OUTFILE
+        -O OUTFILE, --outFile OUTFILE
                         output SVG file
-  -G [GBLATTR ...], --gblAttr [GBLATTR ...]
+        -G [GBLATTR ...], --gblAttr [GBLATTR ...]
                         input global shaper attributes (optional)
+</code>
 
 Example invocations: 
 
