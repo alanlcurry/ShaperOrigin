@@ -45,7 +45,6 @@ Processing is peformed by executing the Python script with command line options.
         -G [GBLATTR ...], --gblAttr [GBLATTR ...]
                         input global shaper attributes (optional)
 
-
 Example invocations: 
 
     No global attributes :
@@ -57,5 +56,5 @@ Example invocations:
         python3 ad2so.py -I Example.svg -O Example-Converted.svg -G shaper:cutDepth=15mm
 
     This invocation demonstrates that multiple global shaper: attributes can be added:
-    
+
         python3 ad2so.py -I Example.svg -O Example-Converted.svg -G shaper:cutDepth=15mm shaper:futureAttr=welcome

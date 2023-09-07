@@ -23,15 +23,18 @@
 # This routine reads a Affinity Designer 2 generated SVG file and adds Shaper Tools shaper: 
 # attributes if present in the serif:id
 
+# usage: ad2so.py [-h] -I INFILE -O OUTFILE [-G [GBLATTR ...]]
+
 # Shaper Origin Support for AD2
 
-# usage: ad2so.py [-h] -in INFILE -out OUTFILE
 # options:
 #   -h, --help            show this help message and exit
-#   -in INFILE, --inFile INFILE
+#   -I INFILE, --inFile INFILE
 #                         input SVG file
-#   -out OUTFILE, --outFile OUTFILE
+#   -O OUTFILE, --outFile OUTFILE
 #                         output SVG file
+#   -G [GBLATTR ...], --gblAttr [GBLATTR ...]
+#                         input global shaper attributes (optional)
 
 import xml.etree.ElementTree as ET
 import argparse
@@ -52,7 +55,6 @@ def set_group_attributes(elem):
         Extracts and adds the shaper: attributes to the element.
     '''    
     
-    # global gblTree
     global grpShaperAttrs
 
     serifNameSpace = "{" + nameSpaces["serif"] + "}id"
@@ -61,11 +63,13 @@ def set_group_attributes(elem):
         serifId = elem.attrib[serifNameSpace]
         serifIdWords = serifId.split()
         grpShaperAttrs = [s for s in serifIdWords if "shaper:" in s]
-        validate_shaper_attributes(grpShaperAttrs)
     except KeyError:
         grpShaperAttrs = None  
 
 def svg_add_xmlns(elem):
+    '''
+        Adds the shaper namespace to the SVG element
+    '''    
 
     global gblTree
 
@@ -121,8 +125,7 @@ args = parser.parse_args()
 
 if args.gblAttr:
     gblShaperAttrs = args.gblAttr
-    validate_shaper_attributes(gblShaperAttrs)
-
+ 
 # We think we should register some name spaces
 
 ET.register_namespace('',nameSpaces["w3"])
