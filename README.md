@@ -1,3 +1,5 @@
+# **Note: This project is not affiliated with Shaper Tools.**
+
 # ad2so.py - Affinity Designer 2 Shaper Origin
 
 ad2so.py applies Shaper Origin attributes to a Affinity Designer 2 exported SVG file. This routine was inspired by the Shaper Community forum thread [Depth encoding via Fusion360 (PLEASE LOCK THREAD)](https://community.shapertools.com/t/depth-encoding-via-fusion360-please-lock-thread/10075)
@@ -22,7 +24,10 @@ Example (scroll all the way to the right to see the shaper: attribute):
 
 Shaper Origin attributes can be set at the group level. The attributes only apply to that group of elements. Shaper: attributes specified on a specific layer will override the group level shaper: attributes.
 
-*Note: Frame Text Tool layers must be in a group for shaper: attributes to be specified for the text.*
+**Group Notes:** 
+
+- Frame Text Tool layers must be in a group for shaper: attributes to be specified for the text.
+- If a group is within a group, the shaper: attribute has to applied to the group name that contains the objects.
 
 Example: 
 
