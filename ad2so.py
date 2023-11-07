@@ -31,11 +31,11 @@
 
 # options:
 #   -h, --help            show this help message and exit
-#   -I INFILE, --inFile INFILE
+#   -i INFILE, --inFile INFILE
 #                         input SVG file
-#   -O OUTFILE, --outFile OUTFILE
+#   -o OUTFILE, --outFile OUTFILE
 #                         output SVG file
-#   -G [GBLATTR ...], --gblAttr [GBLATTR ...]
+#   -g [GBLATTR ...], --gblAttr [GBLATTR ...]
 #                         input global shaper attributes (optional)
 
 import xml.etree.ElementTree as ET
