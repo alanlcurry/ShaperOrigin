@@ -43,23 +43,23 @@ Processing is peformed by executing the Python script with command line options.
 
     options:
         -h, --help            show this help message and exit
-        -I INFILE, --inFile INFILE
+        -i INFILE, --inFile INFILE
                         input SVG file
-        -O OUTFILE, --outFile OUTFILE
+        -o OUTFILE, --outFile OUTFILE
                         output SVG file
-        -G [GBLATTR ...], --gblAttr [GBLATTR ...]
+        -g [GBLATTR ...], --gblAttr [GBLATTR ...]
                         input global shaper attributes (optional)
 
 Example invocations: 
 
     No global attributes :
 
-        python3 ad2so.py -I Example.svg -O Example-Converted.svg      
+        python3 ad2so.py -i Example.svg -o Example-Converted.svg      
 
     With shaper: global attribute:
 
-        python3 ad2so.py -I Example.svg -O Example-Converted.svg -G shaper:cutDepth=15mm
+        python3 ad2so.py -i Example.svg -o Example-Converted.svg -g shaper:cutDepth=15mm
 
     This invocation demonstrates that multiple global shaper: attributes can be added:
 
-        python3 ad2so.py -I Example.svg -O Example-Converted.svg -G shaper:cutDepth=15mm shaper:futureAttr=welcome
+        python3 ad2so.py -i Example.svg -o Example-Converted.svg -g shaper:cutDepth=15mm shaper:futureAttr=welcome
