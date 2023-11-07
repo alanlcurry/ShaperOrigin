@@ -1,3 +1,5 @@
+#!/usr/local/bin/python3
+
 # MIT License
 
 # Copyright (c) 2023  Alan L. Curry
@@ -131,7 +133,6 @@ if args.gblAttr:
 ET.register_namespace('',nameSpaces["w3"])
 ET.register_namespace("serif",nameSpaces["serif"])
 ET.register_namespace("shaper",nameSpaces["shaper"])
-
 
 # Get the input file and parse the tree
 print(f"Reading and parsing {args.inFile}....")
