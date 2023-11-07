@@ -117,9 +117,9 @@ parser = argparse.ArgumentParser(description="Shaper Origin Support for AD2")
 
 # Add the argument options
 
-parser.add_argument("-I","--inFile",help="input SVG file",action="store",required=True)
-parser.add_argument("-O","--outFile",help="output SVG file",action="store",required=True)
-parser.add_argument("-G","--gblAttr",help="input global shaper attributes (optional)",action="store",required=False,nargs='*')
+parser.add_argument("-i","--inFile",help="input SVG file",action="store",required=True)
+parser.add_argument("-o","--outFile",help="output SVG file",action="store",required=True)
+parser.add_argument("-g","--gblAttr",help="input global shaper attributes (optional)",action="store",required=False,nargs='*')
 
 # read arguments from the command line
 
