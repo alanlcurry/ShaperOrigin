@@ -41,6 +41,7 @@
 import xml.etree.ElementTree as ET
 import argparse
 import sys
+import uuid
 
 gblTree = None
 gblShaperAttrs = None
@@ -66,7 +67,11 @@ def set_group_attributes(elem):
         serifIdWords = serifId.split()
         grpShaperAttrs = [s for s in serifIdWords if "shaper:" in s]
     except KeyError:
-        grpShaperAttrs = None  
+        grpShaperAttrs = None
+    finally:
+        elem.set("id",str(uuid.uuid4()))
+        elem.attrib.pop(serifNameSpace,None)
+
 
 def svg_add_xmlns(elem):
     '''
@@ -98,6 +103,7 @@ def svg_add_attribute(elem):
         for shaperAttr in shaperAttrs:
             shaperList = shaperAttr.split("=")
             elem.set(shaperList[0],shaperList[1])
+        
 
     except KeyError:
         if grpShaperAttrs:
@@ -105,7 +111,8 @@ def svg_add_attribute(elem):
                 shaperList = shaperAttr.split("=")
                 elem.set(shaperList[0],shaperList[1])
     finally:
-        pass
+        elem.set("id",str(uuid.uuid4()))
+        elem.attrib.pop(serifNameSpace,None)
 
 
  
@@ -118,7 +125,7 @@ parser = argparse.ArgumentParser(description="Shaper Origin Support for AD2")
 # Add the argument options
 
 parser.add_argument("-i","--inFile",help="input SVG file",action="store",required=True)
-parser.add_argument("-o","--outFile",help="output SVG file",action="store",required=True)
+parser.add_argument("-o","--outFile",help="output SVG file",action="store",required=False)
 parser.add_argument("-g","--gblAttr",help="input global shaper attributes (optional)",action="store",required=False,nargs='*')
 
 # read arguments from the command line
@@ -152,4 +159,8 @@ for elem in gblTree.iter():
         svg_add_attribute(elem)
 
 print(f"Writing {args.outFile}....")
+
+if ( args.outFile == None):
+    args.outFile = args.inFile
+
 gblTree.write(args.outFile)
