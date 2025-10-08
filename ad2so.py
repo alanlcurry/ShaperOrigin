@@ -315,8 +315,10 @@ parser.add_argument("-g","--gblAttr",help="input global shaper attributes (optio
 
 args = parser.parse_args()
 
-if args.gblAttr:
-    gblShaperAttrs = args.gblAttr
+# Validate input file extension
+if not args.inFile.lower().endswith('.svg'):
+    print(f"Error: Input file must be an SVG file. Got: {args.inFile}")
+    sys.exit(1)
  
 # We think we should register some name spaces
 
@@ -331,7 +333,8 @@ gblTree = ET.parse(args.inFile)
 
 # validate global attributes
 
-if gblShaperAttrs:
+if args.gblAttr:
+    gblShaperAttrs = args.gblAttr[0].split(" ")
     for s in gblShaperAttrs:
         if "shaper:" in s:
             validate_shaper_attributes(s)

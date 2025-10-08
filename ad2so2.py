@@ -53,12 +53,32 @@ class ShaperSVGProcessor:
     gblShaperAttrNames = {"cutDepth", "toolDia", "cutOffset", "cutType"}
     gblShaperCutTypes = {"guide", "inside", "outside", "pocket"}
 
-    def __init__(self, in_file, out_file=None, gbl_attrs=None):
-        self.in_file = in_file
-        self.out_file = out_file or in_file
+    @property
+    def in_file(self):
+        return self._in_file
+
+    @in_file.setter 
+    def in_file(self, value):
+        self._in_file = value
+
+    @property
+    def out_file(self):
+        return self._out_file
+
+    @out_file.setter
+    def out_file(self, value):
+        self._out_file = value
+
+    def __init__(self, in_file=None, out_file=None, gbl_attrs=None):
+        self.in_file = in_file  # This will use the setter
+        self.out_file = out_file or in_file  # This will use the setter
         self.gblShaperAttrs = gbl_attrs
         self.grpShaperAttrs = None
         self.gblTree = None
+        # Register namespaces at initialization
+        ET.register_namespace('', self.nameSpaces["w3"])
+        ET.register_namespace("serif", self.nameSpaces["serif"])
+        ET.register_namespace("shaper", self.nameSpaces["shaper"])
 
     def closest_color(self, requested_colour):
         min_colours = {}
@@ -97,6 +117,12 @@ class ShaperSVGProcessor:
     def svg_add_xmlns(self, elem):
         print(f"Adding xmlns:shaper={self.nameSpaces['shaper']} attribute to {elem.tag[-3:]} element....")
         elem.set("xmlns:shaper", self.nameSpaces["shaper"])
+
+    def validate_global_attributes(self):
+        if self.gblShaperAttrs:
+            attributes = self.gblShaperAttrs[0].split(" ")
+            for attribute in attributes:
+                self.validate_shaper_attributes(attribute)
 
     def validate_shaper_attributes(self, attribute):
         attrValues = attribute.split("=")
@@ -191,6 +217,8 @@ class ShaperSVGProcessor:
                 shaperList = shaperAttr.split("=")
                 elem.set(shaperList[0], shaperList[1])
 
+    
+
     def svg_add_attribute(self, elem):
         serifNameSpace = "{" + self.nameSpaces["serif"] + "}id"
         try:
@@ -204,16 +232,11 @@ class ShaperSVGProcessor:
                 self.svg_add_other_attributes(elem, self.gblShaperAttrs)
             self.svg_convert_attribute(elem)
 
+
     def process(self):
-        ET.register_namespace('', self.nameSpaces["w3"])
-        ET.register_namespace("serif", self.nameSpaces["serif"])
-        ET.register_namespace("shaper", self.nameSpaces["shaper"])
         print(f"Reading and parsing {self.in_file}....")
         self.gblTree = ET.parse(self.in_file)
-        if self.gblShaperAttrs:
-            for s in self.gblShaperAttrs:
-                if "shaper:" in s:
-                    self.validate_shaper_attributes(s)
+        self.validate_global_attributes()
         for elem in self.gblTree.iter():
             if "svg" in elem.tag[-3:]:
                 self.svg_add_xmlns(elem)

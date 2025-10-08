@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1475px" height="851px" version="1.1" xml:space="preserve" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" xmlns:shaper="http://www.shapertools.com/namespaces/shaper">
+    <g id="871841fd-d59e-4968-a644-ce93efa7f5e7">
+        <ellipse id="80275230-2921-4c37-8a11-a6b5f5fc399c" cx="1098.76" cy="765.354" rx="148.488" ry="56.693" stroke-width="0.1" shaper:cutType="guide" fill="#0068FF" />
+    </g>
+    <g id="6619364e-0180-4791-9af3-25be97c61233">
+        <path id="2bb01200-c566-49ac-b439-fe69717a9fef" d="M1135.71,525.133C1252.33,671.702 1362.48,615.842 1362.48,615.842L1351.14,513.794L1237.75,479.779L1147.04,502.456C1147.04,502.456 1019.08,378.564 1135.71,525.133Z" shaper:toolDia="6.35mm" shaper:cutDepth="0.5in" stroke-width="0.1" shaper:cutType="inside" fill="#FFFFFF" />
+    </g>
+    <g id="f54f8ec1-038d-44be-9aee-9fecff2abc93">
+        <path id="1dd87d83-1b9f-4668-91e3-e47b25cdb163" d="M1258.58,113.386L1383.31,340.157L1133.86,340.157L1258.58,113.386Z" shaper:toolDia="1mm" stroke-width="0.1" shaper:cutType="online" fill="none" />
+    </g>
+    <g id="14e898e8-da46-4071-84c8-13c2a1f9d3d9">
+        <ellipse id="82b5543a-1cef-4f5b-aa79-b9ea45dbf764" cx="912.756" cy="226.772" rx="119.055" ry="113.386" stroke-width="0.1" shaper:cutType="guide" fill="#0068FF" />
+    </g>
+    <g id="f18d46f3-ee09-4466-b1fd-278475792ae9">
+        <path id="461e57d0-80a6-43eb-8341-844ce10b40e1" d="M680.315,128.804C680.315,124.715 678.69,120.793 675.799,117.902C672.907,115.01 668.986,113.386 664.896,113.386L471.1,113.386C466.444,113.386 461.978,115.236 458.686,118.528C455.393,121.821 453.543,126.286 453.543,130.943L453.543,326.766C453.543,330.317 454.954,333.724 457.466,336.235C459.977,338.747 463.383,340.157 466.935,340.157L667.043,340.157C670.563,340.157 673.939,338.759 676.428,336.27C678.917,333.781 680.315,330.405 680.315,326.885L680.315,128.804Z" shaper:toolDia="16mm" stroke-width="0.1" shaper:cutType="pocket" fill="#7F7F7F" />
+    </g>
+    <g id="044c2d30-3853-490f-a4b1-6058487a7a69">
+        <rect id="4ea7df1e-acd4-4f17-b6c7-a93563c6fbf0" x="113.386" y="113.386" width="238.11" height="226.772" stroke-width="0.1" shaper:cutType="outside" fill="#000000" />
+    </g>
+</svg>
