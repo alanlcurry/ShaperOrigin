@@ -43,6 +43,8 @@ import argparse
 import sys
 import uuid
 import webcolors
+import glob
+import os.path
 
 gblTree = None
 gblShaperAttrs = None
@@ -125,7 +127,7 @@ def set_group_attributes(elem):
 
 def svg_add_xmlns(elem):
     '''
-        Adds the shaper namespace to the SVG element
+        Adds the shaper namespace to the SVG element if it doesn't exist
     '''    
 
     global gblTree
@@ -133,8 +135,9 @@ def svg_add_xmlns(elem):
     global gblShaperAttrNames
     global gblShaperCutTypes
 
-    print(f"Adding xmlns:shaper={nameSpaces['shaper']} attribute to {elem.tag[-3:]} element....")
-    elem.set("xmlns:shaper",nameSpaces["shaper"])
+    if 'xmlns:shaper' not in elem.attrib:
+        print(f"Adding xmlns:shaper={nameSpaces['shaper']} attribute to {elem.tag[-3:]} element....")
+        elem.set("xmlns:shaper",nameSpaces["shaper"])
 
 def validate_shaper_attributes(attribute):
 
@@ -315,47 +318,67 @@ parser.add_argument("-g","--gblAttr",help="input global shaper attributes (optio
 
 args = parser.parse_args()
 
-# Validate input file extension
-if not args.inFile.lower().endswith('.svg'):
-    print(f"Error: Input file must be an SVG file. Got: {args.inFile}")
-    sys.exit(1)
- 
-# We think we should register some name spaces
+# Find all matching input files
+input_files = glob.glob(args.inFile)
 
+if not input_files:
+    print(f"Error: No files found matching pattern: {args.inFile}")
+    sys.exit(1)
+
+# Filter for SVG files only
+input_files = [f for f in input_files if f.lower().endswith('.svg')]
+
+if not input_files:
+    print(f"Error: No SVG files found matching pattern: {args.inFile}")
+    sys.exit(1)
+
+# We think we should register some name spaces
 ET.register_namespace('',nameSpaces["w3"])
 ET.register_namespace("serif",nameSpaces["serif"])
 ET.register_namespace("shaper",nameSpaces["shaper"])
 
-# Get the input file and parse the tree
-print(f"Reading and parsing {args.inFile}....")
-gblTree = ET.parse(args.inFile)
-
-
 # validate global attributes
-
 if args.gblAttr:
     gblShaperAttrs = args.gblAttr[0].split(" ")
     for s in gblShaperAttrs:
         if "shaper:" in s:
             validate_shaper_attributes(s)
 
-# iterate through the elements
+# Process each matching file
+for input_file in input_files:
+    try:
+        # Skip files that have already been converted
+        if "-converted" in input_file:
+            continue
+            
+        # Generate output filename
+        if args.outFile:
+            output_file = args.outFile
+        else:
+            # Split the filename and extension
+            base_name, ext = os.path.splitext(input_file)
+            output_file = f"{base_name}-converted{ext}"
 
-for elem in gblTree.iter():
-    # add the namespace
-    if "svg" in elem.tag[-3:]:
-        svg_add_xmlns(elem)
-    # group level? 
-    elif "g" in elem.tag[-1:]:
-        set_group_attributes(elem)
-    else:
-        # check and add the attributes
-        svg_add_attribute(elem)
+        # Get the input file and parse the tree
+        print(f"Reading and parsing {input_file}....")
+        gblTree = ET.parse(input_file)
 
-print(f"Writing {args.outFile}....")
+        # Process the current file
+        for elem in gblTree.iter():
+            # add the namespace
+            if "svg" in elem.tag[-3:]:
+                svg_add_xmlns(elem)
+            # group level? 
+            elif "g" in elem.tag[-1:]:
+                set_group_attributes(elem)
+            else:
+                # check and add the attributes
+                svg_add_attribute(elem)
+                
+        print(f"Writing {output_file}....")
+        gblTree.write(output_file)
 
-if ( args.outFile == None):
-    args.outFile = args.inFile
-
-gblTree.write(args.outFile)
+    except ET.ParseError as e:
+        print(f"Error processing {input_file}: {e}")
+        continue
 
