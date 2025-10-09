@@ -39,27 +39,47 @@ Shaper Origin attributes can be set at the global level. Global attributes are a
 
 ### Processing
 
-Processing is peformed by executing the Python script with command line options. The command line options are as follows:  
+Processing is performed by executing the Python script with command line options. The command line options are as follows:  
 
     options:
         -h, --help            show this help message and exit
         -i INFILE, --inFile INFILE
-                        input SVG file
+                        input SVG file (supports wildcards like *.svg)
         -o OUTFILE, --outFile OUTFILE
-                        output SVG file
+                        output SVG file or directory (required for single file,
+                        optional for wildcards)
         -g [GBLATTR ...], --gblAttr [GBLATTR ...]
                         input global shaper attributes (optional)
 
 Example invocations: 
 
-    No global attributes :
-
+    Single file processing:
         python3 ad2so.py -i Example.svg -o Example-Converted.svg      
 
-    With shaper: global attribute:
-
+    With global attributes:
         python3 ad2so.py -i Example.svg -o Example-Converted.svg -g shaper:cutDepth=15mm
 
-    This invocation demonstrates that multiple global shaper: attributes can be added:
-
+    Multiple global attributes:
         python3 ad2so.py -i Example.svg -o Example-Converted.svg -g shaper:cutDepth=15mm shaper:futureAttr=welcome
+
+    Process multiple files using wildcards:
+        python3 ad2so.py -i "*.svg"               # Creates *-converted.svg for each file
+        python3 ad2so.py -i "*.svg" -o output_dir # Saves converted files in output_dir
+
+### Auto-naming Convention
+
+When processing files, the program automatically:
+- Adds "-converted" suffix to output filenames
+- Skips any files that already have "-converted" in their name
+- When using wildcards without -o, creates files in the same directory as input
+- When using wildcards with -o, saves files in the specified directory
+
+### Color to Cut Type Mapping
+
+The program automatically maps colors to Shaper cut types:
+- Black → outside
+- White → inside
+- Grey → pocket
+- None+Grey → online
+- Dodger Blue → guide
+- Red → anchor
