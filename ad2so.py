@@ -142,13 +142,28 @@ def get_color_name_rgb(rgb_str):
     Example:
         get_color_name_rgb('rgb(0,0,0)')  # Returns 'black'
     """
-    rgb = rgb_str.replace("rgb(","")
-    rgb = rgb.replace(")","")
-    rgb = rgb.split(",")
-    rgb = tuple(rgb)
-    rgbValue = tuple(map(int, rgb))
-    
-    return get_color_name(rgbValue)
+    try:
+        if not rgb_str.startswith("rgb(") or not rgb_str.endswith(")"):
+            raise ValueError("Invalid RGB string format")
+        
+        rgb = rgb_str.replace("rgb(","")
+        rgb = rgb.replace(")","")
+        rgb = rgb.split(",")
+        
+        if len(rgb) != 3:
+            raise ValueError("RGB string must contain exactly 3 values")
+            
+        rgb = tuple(rgb)
+        rgbValue = tuple(map(int, rgb))
+        
+        # Validate RGB values are in valid range
+        if not all(0 <= x <= 255 for x in rgbValue):
+            raise ValueError("RGB values must be between 0 and 255")
+            
+        return get_color_name(rgbValue)
+    except (ValueError, TypeError) as e:
+        print(f"Warning: Invalid RGB color string '{rgb_str}': {str(e)}. Using default color 'black'.")
+        return "black"
         
 def set_group_attributes(elem):
     '''
@@ -515,6 +530,15 @@ for input_file in input_files:
         if "-converted" in input_file:
             continue
             
+        # Verify input file exists and is readable
+        if not os.path.isfile(input_file):
+            print(f"Error: Input file '{input_file}' does not exist")
+            continue
+            
+        if not os.access(input_file, os.R_OK):
+            print(f"Error: No read permission for input file '{input_file}'")
+            continue
+            
         # Generate output filename
         if args.outFile and not has_wildcards:
             output_file = args.outFile
@@ -549,4 +573,8 @@ for input_file in input_files:
     except ET.ParseError as e:
         print(f"Error processing {input_file}: {e}")
         continue
+    finally:
+        # Clean up global variables
+        gblTree = None
+        grpShaperAttrs = None
 
