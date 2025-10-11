@@ -1,8 +1,15 @@
 # **Note: This project is not affiliated with Shaper Tools.**
 
-# ad2so.py - Affinity Designer 2 Shaper Origin
+# Affinity Designer 2 and Shaper Studio Integration Tools
 
-ad2so.py applies Shaper Origin attributes to a Affinity Designer 2 exported SVG file. This routine was inspired by the Shaper Community forum thread [Depth encoding via Fusion360 (PLEASE LOCK THREAD)](https://community.shapertools.com/t/depth-encoding-via-fusion360-please-lock-thread/10075)
+This repository contains two tools for working with SVG files between Affinity Designer 2 (AD2) and Shaper Studio:
+
+- `ad2so.py`: Converts AD2 SVG files to Shaper Studio format
+- `ss2ad.py`: Converts Shaper Studio SVG files back to AD2 format
+
+## ad2so.py - AD2 to Shaper Studio Converter
+
+`ad2so.py` applies Shaper Studio attributes to an Affinity Designer 2 exported SVG file. This tool was inspired by the Shaper Community forum thread [Depth encoding via Fusion360 (PLEASE LOCK THREAD)](https://community.shapertools.com/t/depth-encoding-via-fusion360-please-lock-thread/10075)
 
 ### Specifing Attributes in Affinity Designer 2
 
@@ -65,17 +72,86 @@ Example invocations:
         python3 ad2so.py -i "*.svg"               # Creates *-converted.svg for each file
         python3 ad2so.py -i "*.svg" -o output_dir # Saves converted files in output_dir
 
+## ss2ad.py - Shaper Studio to AD2 Converter
+
+`ss2ad.py` converts Shaper Studio SVG files back to Affinity Designer 2 format. It takes any shaper: attributes in the SVG file and concatenates them into the ID field, making them readable in AD2's layer panel.
+
+For example, it converts:
+
+    <path d="..." shaper:cutDepth="20mm" shaper:cutType="outside" />
+
+To:
+
+    <path d="..." id="shaper:cutDepth=20mm shaper:cutType=outside" />
+
+This preserves the Shaper Studio settings while making them visible and editable in AD2's layer panel.
+
+## Usage
+
+Both tools support similar command-line options:
+
+### ad2so.py Options
+
+    -h, --help            Show this help message and exit
+    -i INFILE, --inFile INFILE
+                         Input SVG file (supports wildcards like *.svg)
+    -o OUTFILE, --outFile OUTFILE
+                         Output SVG file or directory (required for single file,
+                         optional for wildcards)
+    -g [GBLATTR ...], --gblAttr [GBLATTR ...]
+                         Input global shaper attributes (optional)
+
+### ss2ad.py Options
+
+    -h, --help            Show this help message and exit
+    -i INFILE, --inFile INFILE
+                         Input SVG file(s) from Shaper Studio. Supports wildcards (*, ?)
+    -o OUTFILE, --outFile OUTFILE
+                         Output path (optional). For single files, specifies output file.
+                         For wildcards, must be a directory.
+
+### Example Usage
+
+Single file processing:
+```bash
+# Convert from AD2 to Shaper Studio
+python3 ad2so.py -i Example.svg -o Example-Shaper.svg
+
+# Convert from Shaper Studio back to AD2
+python3 ss2ad.py -i Example-Shaper.svg -o Example-AD2.svg
+```
+
+Process multiple files using wildcards:
+```bash
+# Convert all SVG files to Shaper Studio format
+python3 ad2so.py -i "*.svg"               # Creates *-converted.svg for each file
+python3 ad2so.py -i "*.svg" -o output_dir # Saves converted files in output_dir
+
+# Convert all Shaper Studio files back to AD2 format
+python3 ss2ad.py -i "*.svg"               # Creates *-converted.svg for each file
+python3 ss2ad.py -i "*.svg" -o output_dir # Saves converted files in output_dir
+```
+
+With global attributes (ad2so.py only):
+```bash
+# Single global attribute
+python3 ad2so.py -i Example.svg -o Example-Converted.svg -g shaper:cutDepth=15mm
+
+# Multiple global attributes
+python3 ad2so.py -i Example.svg -o Example-Converted.svg -g shaper:cutDepth=15mm shaper:toolDia=0.25in
+```
+
 ### Auto-naming Convention
 
-When processing files, the program automatically:
-- Adds "-converted" suffix to output filenames
-- Skips any files that already have "-converted" in their name
-- When using wildcards without -o, creates files in the same directory as input
-- When using wildcards with -o, saves files in the specified directory
+When processing files, both programs automatically:
+- Add "-converted" suffix to output filenames
+- Skip any files that already have "-converted" in their name
+- When using wildcards without -o, create files in the same directory as input
+- When using wildcards with -o, save files in the specified directory
 
-### Color to Cut Type Mapping
+### Color to Cut Type Mapping (ad2so.py only)
 
-The program automatically maps colors to Shaper cut types:
+The ad2so.py program automatically maps colors to Shaper cut types:
 - Black → outside
 - White → inside
 - Grey → pocket
