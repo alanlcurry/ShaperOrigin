@@ -4,12 +4,12 @@
 
 This repository contains two tools for working with SVG files between Affinity Designer 2 (AD2) and Shaper Studio:
 
-- `ad2so.py`: Converts AD2 SVG files to Shaper Studio format
+- `ad2so.py`: Converts AD2 SVG files to Shaper Origin format
 - `ss2ad.py`: Converts Shaper Studio SVG files back to AD2 format
 
-## ad2so.py - AD2 to Shaper Studio Converter
+## ad2so.py - AD2 to Shaper Origin Converter
 
-`ad2so.py` applies Shaper Studio attributes to an Affinity Designer 2 exported SVG file. This tool was inspired by the Shaper Community forum thread [Depth encoding via Fusion360 (PLEASE LOCK THREAD)](https://community.shapertools.com/t/depth-encoding-via-fusion360-please-lock-thread/10075)
+`ad2so.py` applies Shaper Origin attributes to an Affinity Designer 2 exported SVG file. This tool was inspired by the Shaper Community forum thread [Depth encoding via Fusion360 (PLEASE LOCK THREAD)](https://community.shapertools.com/t/depth-encoding-via-fusion360-please-lock-thread/10075)
 
 ### Specifing Attributes in Affinity Designer 2
 
@@ -114,7 +114,7 @@ Both tools support similar command-line options:
 
 Single file processing:
 ```bash
-# Convert from AD2 to Shaper Studio
+# Convert from AD2 to Shaper Origin
 python3 ad2so.py -i Example.svg -o Example-Shaper.svg
 
 # Convert from Shaper Studio back to AD2
@@ -123,7 +123,7 @@ python3 ss2ad.py -i Example-Shaper.svg -o Example-AD2.svg
 
 Process multiple files using wildcards:
 ```bash
-# Convert all SVG files to Shaper Studio format
+# Convert all SVG files to Shaper Origin format
 python3 ad2so.py -i "*.svg"               # Creates *-converted.svg for each file
 python3 ad2so.py -i "*.svg" -o output_dir # Saves converted files in output_dir
 
