@@ -1,6 +1,6 @@
 # **Note: This project is not affiliated with Shaper Tools.**
 
-# Affinity Designer 2 and Shaper Studio Integration Tools
+# Affinity Designer 2 and Shaper Origin/Studio Integration Tools
 
 This repository contains two tools for working with SVG files between Affinity Designer 2 (AD2) and Shaper Studio:
 
