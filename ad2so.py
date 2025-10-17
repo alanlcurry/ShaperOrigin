@@ -480,32 +480,26 @@ parser = argparse.ArgumentParser(description="Shaper Origin Support for AD2")
 
 # Add the argument options
 
-parser.add_argument("-i","--inFile",help="input SVG file",action="store",required=True)
-parser.add_argument("-o","--outFile",help="output SVG file",action="store",required=False)
+parser.add_argument("-i","--inFile",help="input SVG file(s)",action="store",nargs='+',required=True)
+parser.add_argument("-o","--outFile",help="output SVG file or directory",action="store",required=False)
 parser.add_argument("-g","--gblAttr",help="input global shaper attributes (optional)",action="store",required=False,nargs='*')
 
 # read arguments from the command line
 
 args = parser.parse_args()
 
-# Check if input pattern contains wildcards
-has_wildcards = '*' in args.inFile or '?' in args.inFile
-
-# If wildcards are used and output is specified, it must be a directory
-if has_wildcards and args.outFile:
+# If multiple files and output is specified, it must be a directory
+if len(args.inFile) > 1 and args.outFile:
     if not os.path.isdir(args.outFile):
-        print("Error: When using wildcards, output (-o) must be a directory")
+        print("Error: When processing multiple files, output (-o) must be a directory")
         sys.exit(1)
 
-# Find all matching input files
-input_files = glob.glob(args.inFile)
+# Filter for SVG files only
+input_files = [f for f in args.inFile if f.lower().endswith('.svg')]
 
 if not input_files:
-    print(f"Error: No files found matching pattern: {args.inFile}")
+    print("Error: No SVG files found in input")
     sys.exit(1)
-
-# Filter for SVG files only
-input_files = [f for f in input_files if f.lower().endswith('.svg')]
 
 if not input_files:
     print(f"Error: No SVG files found matching pattern: {args.inFile}")
@@ -540,7 +534,7 @@ for input_file in input_files:
             continue
             
         # Generate output filename
-        if args.outFile and not has_wildcards:
+        if args.outFile and len(args.inFile) == 1:
             output_file = args.outFile
         else:
             # Split the filename and extension

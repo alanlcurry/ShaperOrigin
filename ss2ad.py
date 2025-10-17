@@ -137,31 +137,26 @@ def main():
     """
     # Set up argument parser
     parser = argparse.ArgumentParser(description="Convert Shaper Studio SVG to AD2 format")
-    parser.add_argument("-i", "--inFile", help="Input SVG file from Shaper Studio", required=True)
+    parser.add_argument("-i","--inFile",help="Input SVG file(s)",action="store",nargs='+',required=True)
     parser.add_argument("-o", "--outFile", help="Output SVG file (optional)", required=False)
     
-    # Parse arguments
+    # read arguments from the command line
+
     args = parser.parse_args()
-    
-    # Check for wildcards in input pattern
-    has_wildcards = '*' in args.inFile or '?' in args.inFile
-    
-    # Validate output if wildcards are used
-    if has_wildcards and args.outFile:
+
+    # If multiple files and output is specified, it must be a directory
+    if len(args.inFile) > 1 and args.outFile:
         if not os.path.isdir(args.outFile):
-            print("Error: When using wildcards, output (-o) must be a directory")
+            print("Error: When processing multiple files, output (-o) must be a directory")
             sys.exit(1)
     
-    # Find all matching input files
-    input_files = glob.glob(args.inFile)
-    
-    if not input_files:
-        print(f"Error: No files found matching pattern: {args.inFile}")
-        sys.exit(1)
-    
     # Filter for SVG files only
-    input_files = [f for f in input_files if f.lower().endswith('.svg')]
-    
+    input_files = [f for f in args.inFile if f.lower().endswith('.svg')]
+
+    if not input_files:
+        print("Error: No SVG files found in input")
+        sys.exit(1)
+
     if not input_files:
         print(f"Error: No SVG files found matching pattern: {args.inFile}")
         sys.exit(1)
@@ -202,6 +197,7 @@ def main():
             # Parse and process the SVG file
             print(f"Reading and parsing {input_file}....")
             tree = ET.parse(input_file)
+        
             process_svg(tree)
             
             # Write the processed file
