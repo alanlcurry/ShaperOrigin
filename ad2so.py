@@ -386,10 +386,13 @@ def svg_convert_attribute(elem):
         else:
             color_name = fillValue
     elif fillValue and not strokeValue:
-        color_name = fillValue  
+        if fillValue == "none":
+            color_name = "dodgerblue"
+        else:
+            color_name = fillValue  
     else:
         color_name = "black"
-
+    # print(color_name)
     cutType = cutTypes[color_name]
     fillValue = fillValues[cutType]
 
@@ -494,15 +497,26 @@ if len(args.inFile) > 1 and args.outFile:
         print("Error: When processing multiple files, output (-o) must be a directory")
         sys.exit(1)
 
-# Filter for SVG files only
-input_files = [f for f in args.inFile if f.lower().endswith('.svg')]
+# Expand wildcards from input patterns
+expanded_files = []
+for pattern in args.inFile:
+    expanded_files.extend(glob.glob(pattern))
 
-if not input_files:
-    print("Error: No SVG files found in input")
+# Separate valid SVG files from others and warn about invalid ones
+valid_svg_files = []
+for f in expanded_files:
+    if f.lower().endswith('.svg'):
+        valid_svg_files.append(f)
+    else:
+        print(f"Warning: Skipping non-SVG file: {f}")
+
+if not expanded_files:
+    print(f"Error: No files found matching the input pattern(s): {' '.join(args.inFile)}")
     sys.exit(1)
 
-if not input_files:
-    print(f"Error: No SVG files found matching pattern: {args.inFile}")
+# Check if there are any valid files to process
+if not valid_svg_files:
+    print(f"Error: No valid SVG files found to process.")
     sys.exit(1)
 
 # We think we should register some name spaces
@@ -518,7 +532,7 @@ if args.gblAttr:
             validate_shaper_attributes(s)
 
 # Process each matching file
-for input_file in input_files:
+for input_file in valid_svg_files:
     try:
         # Skip files that have already been converted
         if "-converted" in input_file:
@@ -571,4 +585,3 @@ for input_file in input_files:
         # Clean up global variables
         gblTree = None
         grpShaperAttrs = None
-

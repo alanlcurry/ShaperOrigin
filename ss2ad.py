@@ -60,6 +60,7 @@ import argparse
 import sys
 import glob
 import os.path
+import webcolors
 
 # XML namespaces used in SVG processing
 nameSpaces = {
@@ -67,6 +68,27 @@ nameSpaces = {
     "serif": "http://www.serif.com/",
     "shaper": "http://www.shapertools.com/namespaces/shaper"
 }
+
+def get_color_name_hex(hex_value):
+    try:
+        # Direct match
+        return webcolors.hex_to_name(hex_value)
+    except ValueError:
+        # No exact match → find closest color name
+        r, g, b = webcolors.hex_to_rgb(hex_value)
+        min_distance = float('inf')
+        closest_name = None
+
+        for name, candidate_hex in webcolors.CSS3_HEX_TO_NAMES.items():
+            cr, cg, cb = webcolors.hex_to_rgb(candidate_hex)
+            distance = (r - cr) ** 2 + (g - cg) ** 2 + (b - cb) ** 2  # Euclidean distance
+
+            if distance < min_distance:
+                min_distance = distance
+                closest_name = name
+
+        return closest_name
+
 
 def convert_attributes_to_id(elem):
     """
@@ -128,6 +150,7 @@ def process_svg(tree):
         if "svg" not in elem.tag[-3:]:
             # Convert shaper attributes to ID for non-root elements
             convert_attributes_to_id(elem)
+            
 def main():
     """
     Main function for processing SVG files.
@@ -150,15 +173,26 @@ def main():
             print("Error: When processing multiple files, output (-o) must be a directory")
             sys.exit(1)
     
-    # Filter for SVG files only
-    input_files = [f for f in args.inFile if f.lower().endswith('.svg')]
+    # Expand wildcards from input patterns
+    expanded_files = []
+    for pattern in args.inFile:
+        expanded_files.extend(glob.glob(pattern))
 
-    if not input_files:
-        print("Error: No SVG files found in input")
+    # Separate valid SVG files from others and warn about invalid ones
+    valid_svg_files = []
+    for f in expanded_files:
+        if f.lower().endswith('.svg'):
+            valid_svg_files.append(f)
+        else:
+            print(f"Warning: Skipping non-SVG file: {f}")
+
+    if not expanded_files:
+        print(f"Error: No files found matching the input pattern(s): {' '.join(args.inFile)}")
         sys.exit(1)
 
-    if not input_files:
-        print(f"Error: No SVG files found matching pattern: {args.inFile}")
+    # Check if there are any valid files to process
+    if not valid_svg_files:
+        print(f"Error: No valid SVG files found to process.")
         sys.exit(1)
     
     # Register namespaces
@@ -167,7 +201,7 @@ def main():
     ET.register_namespace("shaper", nameSpaces["shaper"])
     
     # Process each matching file
-    for input_file in input_files:
+    for input_file in valid_svg_files:
         try:
             # Skip files that have already been converted
             if "-converted" in input_file:
@@ -183,7 +217,7 @@ def main():
                 continue
             
             # Generate output filename
-            if args.outFile and not has_wildcards:
+            if args.outFile and len(valid_svg_files) == 1:
                 output_file = args.outFile
             else:
                 # Split the filename and extension
@@ -210,4 +244,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

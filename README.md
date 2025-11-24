@@ -50,12 +50,12 @@ Processing is performed by executing the Python script with command line options
     options:
         -h, --help            show this help message and exit
         -i INFILE, --inFile INFILE
-                        input SVG file (supports wildcards like *.svg)
+                        Input SVG file(s). Supports wildcards (e.g., *.svg).
         -o OUTFILE, --outFile OUTFILE
-                        output SVG file or directory (required for single file,
-                        optional for wildcards)
+                        Output file or directory (optional). If omitted, a
+                        '-converted.svg' file is created alongside the input.
         -g [GBLATTR ...], --gblAttr [GBLATTR ...]
-                        input global shaper attributes (optional)
+                        Global shaper attributes to apply (optional).
 
 Example invocations: 
 
@@ -66,11 +66,11 @@ Example invocations:
         python3 ad2so.py -i Example.svg -o Example-Converted.svg -g shaper:cutDepth=15mm
 
     Multiple global attributes:
-        python3 ad2so.py -i Example.svg -o Example-Converted.svg -g shaper:cutDepth=15mm shaper:futureAttr=welcome
+        python3 ad2so.py -i Example.svg -o Example-Converted.svg -g "shaper:cutDepth=15mm" "shaper:toolDia=0.25in"
 
     Process multiple files using wildcards:
-        python3 ad2so.py -i "*.svg"               # Creates *-converted.svg for each file
-        python3 ad2so.py -i "*.svg" -o output_dir # Saves converted files in output_dir
+        python3 ad2so.py -i *.svg               # Creates *-converted.svg for each file
+        python3 ad2so.py -i *.svg -o output_dir # Saves converted files in output_dir
 
 ## ss2ad.py - Shaper Studio to AD2 Converter
 
@@ -94,21 +94,21 @@ Both tools support similar command-line options:
 
     -h, --help            Show this help message and exit
     -i INFILE, --inFile INFILE
-                         Input SVG file (supports wildcards like *.svg)
+                         Input SVG file(s). Supports wildcards (e.g., *.svg).
     -o OUTFILE, --outFile OUTFILE
-                         Output SVG file or directory (required for single file,
-                         optional for wildcards)
+                         Output file or directory (optional). If omitted, a
+                         '-converted.svg' file is created alongside the input.
     -g [GBLATTR ...], --gblAttr [GBLATTR ...]
-                         Input global shaper attributes (optional)
+                         Global shaper attributes to apply (optional).
 
 ### ss2ad.py Options
 
     -h, --help            Show this help message and exit
     -i INFILE, --inFile INFILE
-                         Input SVG file(s) from Shaper Studio. Supports wildcards (*, ?)
+                         Input SVG file(s). Supports wildcards (e.g., *.svg).
     -o OUTFILE, --outFile OUTFILE
-                         Output path (optional). For single files, specifies output file.
-                         For wildcards, must be a directory.
+                         Output file or directory (optional). If omitted, a
+                         '-converted.svg' file is created alongside the input.
 
 ### Example Usage
 
@@ -123,13 +123,13 @@ python3 ss2ad.py -i Example-Shaper.svg -o Example-AD2.svg
 
 Process multiple files using wildcards:
 ```bash
-# Convert all SVG files to Shaper Origin format
-python3 ad2so.py -i "*.svg"               # Creates *-converted.svg for each file
-python3 ad2so.py -i "*.svg" -o output_dir # Saves converted files in output_dir
+# Convert all SVG files in the current directory to Shaper Origin format
+python3 ad2so.py -i *.svg
+python3 ad2so.py -i *.svg -o output_dir
 
-# Convert all Shaper Studio files back to AD2 format
-python3 ss2ad.py -i "*.svg"               # Creates *-converted.svg for each file
-python3 ss2ad.py -i "*.svg" -o output_dir # Saves converted files in output_dir
+# Convert all Shaper Studio files in the current directory back to AD2 format
+python3 ss2ad.py -i *.svg
+python3 ss2ad.py -i *.svg -o output_dir
 ```
 
 With global attributes (ad2so.py only):
