@@ -117,6 +117,7 @@ def convert_attributes_to_id(elem):
         if qname.startswith(shaper_ns):
             # Get the local name without namespace
             local_name = qname.split("}")[-1]
+            value = value.replace(" ", "")
             # Format as shaper:name=value
             shaper_attrs.append(f"shaper:{local_name}={value}")
             attrs_to_remove.append(qname)

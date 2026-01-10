@@ -56,6 +56,10 @@ import uuid
 import webcolors
 import glob
 import os.path
+import logging
+
+# Configure basic logging
+logging.basicConfig(level=logging.INFO)
 
 gblTree = None
 gblShaperAttrs = None
@@ -77,6 +81,30 @@ nameSpaces = {
     "serif": "http://www.serif.com/",
     "shaper": "http://www.shapertools.com/namespaces/shaper"
 }
+
+# Convenience constant for serif:id attribute
+SERIF_ID = "{" + nameSpaces["serif"] + "}id"
+
+
+def local_name(elem):
+    """Return the local tag name (without namespace)."""
+    tag = elem.tag
+    if isinstance(tag, str) and '}' in tag:
+        return tag.rsplit('}', 1)[-1]
+    return tag
+
+
+def parse_style(style_str):
+    """Parse an SVG style string into a dict: 'fill:#000;stroke:none' -> {'fill':'#000','stroke':'none'}"""
+    if not style_str:
+        return {}
+    return dict(item.split(':', 1) for item in style_str.split(';') if ':' in item)
+
+
+def rgb_to_hex(r, g, b):
+    return '#{:02x}{:02x}{:02x}'.format(r, g, b)
+
+
 
 def closest_color(requested_colour):
     """
@@ -162,52 +190,43 @@ def get_color_name_rgb(rgb_str):
             
         return get_color_name(rgbValue)
     except (ValueError, TypeError) as e:
-        print(f"Warning: Invalid RGB color string '{rgb_str}': {str(e)}. Using default color 'black'.")
+        logging.warning(f"Invalid RGB color string '%s': %s. Using default color 'black'.", rgb_str, e)
         return "black"
         
 def set_group_attributes(elem):
-    '''
-        Extracts and adds the shaper: attributes to grpShaperAttrs 
-    '''    
-    
-    global gblTree
-    global grpShaperAttrs
-    global gblShaperAttrNames
-    global gblShaperCutTypes
+    """Extract `shaper:` attributes from a group element and return them.
 
-    serifNameSpace = "{" + nameSpaces["serif"] + "}id"
-          
-    try:
-        serifId = elem.attrib[serifNameSpace]
+    Returns:
+        list[str] | None: List of `shaper:...` attribute strings if present, otherwise None.
+
+    Side effects:
+        - Sets a new UUID on the element's `id` attribute.
+        - Removes the original `serif:id` attribute from the element.
+    """
+    serifId = elem.attrib.get(SERIF_ID)
+    attrs = None
+    if serifId:
         serifIdWords = serifId.split()
-
-        # grpShaperAttrs = [s for s in serifIdWords if "shaper:" in s]
-        grpShaperAttrs = []
-        for s in serifIdWords:
-            if "shaper:" in s:
-                validate_shaper_attributes(s)
-                grpShaperAttrs.append(s)
-
-    except KeyError:
-        grpShaperAttrs = None
-    finally:
-        elem.set("id",str(uuid.uuid4()))
-        elem.attrib.pop(serifNameSpace,None)
+        attrs = [s for s in serifIdWords if s.startswith("shaper:")]
+        for s in attrs:
+            validate_shaper_attributes(s)
+    elem.set("id", str(uuid.uuid4()))
+    elem.attrib.pop(SERIF_ID, None)
+    return attrs
 
 
 def svg_add_xmlns(elem):
-    '''
-        Adds the shaper namespace to the SVG element if it doesn't exist
-    '''    
+    """Ensure the SVG root element declares the `shaper` and `serif` namespaces.
 
-    global gblTree
-    global grpShaperAttrs
-    global gblShaperAttrNames
-    global gblShaperCutTypes
+    The function is idempotent and will add the missing namespace declarations if necessary.
+    """
 
     if 'xmlns:shaper' not in elem.attrib:
-        print(f"Adding xmlns:shaper={nameSpaces['shaper']} attribute to {elem.tag[-3:]} element....")
-        elem.set("xmlns:shaper",nameSpaces["shaper"])
+        logging.info("Adding xmlns:shaper=%s attribute to %s element.", nameSpaces['shaper'], local_name(elem))
+        elem.set("xmlns:shaper", nameSpaces["shaper"])
+    if 'xmlns:serif' not in elem.attrib:
+        logging.info("Adding xmlns:serif=%s attribute to %s element.", nameSpaces['serif'], local_name(elem))
+        elem.set("xmlns:serif", nameSpaces["serif"]) 
 
 def validate_shaper_attributes(attribute):
     """
@@ -239,12 +258,12 @@ def validate_shaper_attributes(attribute):
     attrValues = attribute.split("=")
     attrName = attrValues[0].split(":")
 
-    if attrName[1] in gblShaperAttrNames:      
+    if attrName[1] in gblShaperAttrNames:
         if attrName[1] == "cutType":
             if attrValues[1] not in gblShaperCutTypes:
-                print(f"Warning: Unsupported cut type - {attrValues[1]} .")
+                logging.warning("Unsupported cut type - %s", attrValues[1])
     else:
-        print(f"Warning: Unsupported shaper attribute - {attrName[1]} .")
+        logging.warning("Unsupported shaper attribute - %s", attrName[1])
 
 
 def svg_add_layer_attributes(elem):
@@ -267,21 +286,15 @@ def svg_add_layer_attributes(elem):
         A layer named "Circle - shaper:cutDepth=0.5in" will add
         the attribute cutDepth="0.5in" to the element.
     """
-    global gblTree
-    global grpShaperAttrs
-    global gblShaperAttrNames
-    global gblShaperCutTypes
-
-    serifNameSpace = "{" + nameSpaces["serif"] + "}id"
-    serifId = elem.attrib[serifNameSpace]
+    serifId = elem.attrib.get(SERIF_ID)
+    if not serifId:
+        return
     serifIdWords = serifId.split()
 
     # Extract and validate shaper attributes
-    shaperAttrs = []
-    for s in serifIdWords:
-        if "shaper:" in s:
-            validate_shaper_attributes(s)
-            shaperAttrs.append(s)
+    shaperAttrs = [s for s in serifIdWords if s.startswith("shaper:")]
+    for s in shaperAttrs:
+        validate_shaper_attributes(s)
 
     # Add validated attributes to the element
     for shaperAttr in shaperAttrs:
@@ -297,12 +310,19 @@ def svg_convert_attribute(elem):
     scenarios and sets default values.
     
     Color Mapping Rules:
-    - black → outside cut
-    - white → inside cut
-    - grey → pocket cut
-    - none+grey → online cut
-    - dodgerblue → guide
-    - red → anchor
+    - black fill, black stroke → outside cut
+    - white fill, black stroke → inside cut
+    - grey fill, no stroke → pocket cut
+    - no fill, grey stroke → online cut
+    - blue fill or blue stroke → guide
+    - red fill or red stroke → anchor
+    
+    RGB Color References:
+    - black:    rgb(0,0,0)
+    - white:    rgb(255,255,255)
+    - grey:     rgb(127,127,127)
+    - blue:     rgb(0,104,255)
+    - red:      rgb(255,0,0)
     
     Args:
         elem (ElementTree.Element): The SVG element to process
@@ -322,7 +342,6 @@ def svg_convert_attribute(elem):
     global gblShaperAttrNames
     global gblShaperCutTypes
 
-    serifNameSpace = "{" + nameSpaces["serif"] + "}id"
     # rgbValue = (0,0,0)
     rgbValue = None
     fillValue = None
@@ -347,36 +366,24 @@ def svg_convert_attribute(elem):
             "anchor":"#FF0000"
     }
 
-    elem.set("stroke-width","0.1")
-    elem.set("id",str(uuid.uuid4()))
-    elem.attrib.pop(serifNameSpace,None)
-    style = elem.attrib.pop("style",None)
+    tag = elem.tag
+    elem.set("stroke-width", "0.1")
+    elem.set("id", str(uuid.uuid4()))
+    elem.attrib.pop(SERIF_ID, None)
+    style = elem.attrib.pop("style", None)
 
-    fillValue = None
-    strokeValue = None
-
-    if style:
-        styleEntries = style.split(';')
-
-        for item in styleEntries:
-            splitIt = item.split(":")
-            if splitIt[0] == "fill":
-                fillValue = splitIt[1]
-            if splitIt[0] == "stroke":
-                strokeValue = splitIt[1]
+    style_dict = parse_style(style)
+    fillValue = style_dict.get("fill")
+    strokeValue = style_dict.get("stroke")
 
     # print(f"fill = {fillValue} stroke = {strokeValue}")      
 
-    if fillValue:
-        if "rgb" in fillValue:
-            fillValue = get_color_name_rgb(fillValue)
+    if fillValue and "rgb" in fillValue:
+        fillValue = get_color_name_rgb(fillValue)
 
-    if strokeValue:
-        if "rgb" in strokeValue:
-            strokeValue = get_color_name_rgb(strokeValue)
-    
-    # print(f"fill = {fillValue} stroke = {strokeValue}") 
-    # print("")
+    if strokeValue and "rgb" in strokeValue:
+        strokeValue = get_color_name_rgb(strokeValue)
+
 
     if fillValue and strokeValue:
         if fillValue == "none" and strokeValue == "grey":
@@ -419,11 +426,6 @@ def svg_add_other_attributes(elem, attributes):
     Example:
         svg_add_other_attributes(elem, ['shaper:cutDepth=0.5in'])
     """
-    global gblTree
-    global grpShaperAttrs
-    global gblShaperAttrNames
-    global gblShaperCutTypes
-
     elemKeys = elem.keys()
     # print(attributes)
     for shaperAttr in attributes:
@@ -433,155 +435,131 @@ def svg_add_other_attributes(elem, attributes):
             # print(shaperList)
             elem.set(shaperList[0],shaperList[1])
 
-def svg_add_attribute(elem):
-    """
-    Main attribute processing function for SVG elements.
-    
-    Coordinates the entire attribute processing workflow for an element:
-    1. Attempts to add layer-specific attributes
-    2. Applies any inherited group attributes
-    3. Applies any global attributes
-    4. Converts style/color attributes to Shaper cut types
-    
-    Args:
-        elem (ElementTree.Element): The SVG element to process
-        
-    Global Variables Used:
-        grpShaperAttrs: Group-level attributes to inherit
-        gblShaperAttrs: Global attributes to apply
-        
-    Side Effects:
-        - Adds layer attributes if present
-        - Applies group attributes if any
-        - Applies global attributes if any
-        - Converts color attributes to cut types
-    """
-    global gblTree
-    global grpShaperAttrs
-    global gblShaperAttrNames
-    global gblShaperCutTypes
+def svg_add_attribute(elem, group_attrs=None):
+    """Process a non-group SVG element: add layer attributes, group attrs, global attrs, then convert styles."""
+    svg_add_layer_attributes(elem)
 
-    serifNameSpace = "{" + nameSpaces["serif"] + "}id"
-
-    try:
-        svg_add_layer_attributes(elem)
-    except:
-        pass
-
-    finally:
-        if grpShaperAttrs:           
-            svg_add_other_attributes(elem, grpShaperAttrs)
-        if gblShaperAttrs:
-            svg_add_other_attributes(elem, gblShaperAttrs)
-        svg_convert_attribute(elem)
+    if group_attrs:
+        svg_add_other_attributes(elem, group_attrs)
+    if gblShaperAttrs:
+        svg_add_other_attributes(elem, gblShaperAttrs)
+    svg_convert_attribute(elem)
    
 # Define and get the command line options
 
 # initiate the parser
 
-parser = argparse.ArgumentParser(description="Shaper Origin Support for AD2")
+def main():
+    parser = argparse.ArgumentParser(description="Shaper Origin Support for AD2")
 
-# Add the argument options
+    # Add the argument options
+    parser.add_argument("-i","--inFile",help="input SVG file(s)",action="store",nargs='+',required=True)
+    parser.add_argument("-o","--outFile",help="output SVG file or directory",action="store",required=False)
+    parser.add_argument("-g","--gblAttr",help="input global shaper attributes (optional)",action="store",required=False,nargs='*')
 
-parser.add_argument("-i","--inFile",help="input SVG file(s)",action="store",nargs='+',required=True)
-parser.add_argument("-o","--outFile",help="output SVG file or directory",action="store",required=False)
-parser.add_argument("-g","--gblAttr",help="input global shaper attributes (optional)",action="store",required=False,nargs='*')
+    # read arguments from the command line
+    args = parser.parse_args()
 
-# read arguments from the command line
+    # If multiple files and output is specified, it must be a directory
+    if len(args.inFile) > 1 and args.outFile:
+        if not os.path.isdir(args.outFile):
+            logging.error("When processing multiple files, output (-o) must be a directory")
+            sys.exit(1)
 
-args = parser.parse_args()
+    # Expand wildcards from input patterns
+    expanded_files = []
+    for pattern in args.inFile:
+        expanded_files.extend(glob.glob(pattern))
 
-# If multiple files and output is specified, it must be a directory
-if len(args.inFile) > 1 and args.outFile:
-    if not os.path.isdir(args.outFile):
-        print("Error: When processing multiple files, output (-o) must be a directory")
+    # Separate valid SVG files from others and warn about invalid ones
+    valid_svg_files = []
+    for f in expanded_files:
+        if f.lower().endswith('.svg'):
+            valid_svg_files.append(f)
+        else:
+            logging.warning("Skipping non-SVG file: %s", f)
+
+    if not expanded_files:
+        logging.error("No files found matching the input pattern(s): %s", ' '.join(args.inFile))
         sys.exit(1)
 
-# Expand wildcards from input patterns
-expanded_files = []
-for pattern in args.inFile:
-    expanded_files.extend(glob.glob(pattern))
+    # Check if there are any valid files to process
+    if not valid_svg_files:
+        logging.error("No valid SVG files found to process.")
+        sys.exit(1)
 
-# Separate valid SVG files from others and warn about invalid ones
-valid_svg_files = []
-for f in expanded_files:
-    if f.lower().endswith('.svg'):
-        valid_svg_files.append(f)
-    else:
-        print(f"Warning: Skipping non-SVG file: {f}")
+    # We think we should register some name spaces
+    ET.register_namespace('',nameSpaces["w3"])
+    ET.register_namespace("serif",nameSpaces["serif"])
+    ET.register_namespace("shaper",nameSpaces["shaper"])
 
-if not expanded_files:
-    print(f"Error: No files found matching the input pattern(s): {' '.join(args.inFile)}")
-    sys.exit(1)
+    # validate global attributes
+    if args.gblAttr:
+        # store in the module-level global so processing functions can see it
+        global gblShaperAttrs
+        gblShaperAttrs = []
+        for token in args.gblAttr:
+            # handle either a single quoted string or multiple tokens
+            gblShaperAttrs.extend(token.split())
+        logging.info("Global shaper attributes: %s", gblShaperAttrs)
+        for s in gblShaperAttrs:
+            if "shaper:" in s:
+                validate_shaper_attributes(s)
 
-# Check if there are any valid files to process
-if not valid_svg_files:
-    print(f"Error: No valid SVG files found to process.")
-    sys.exit(1)
+    # Process each matching file
+    for input_file in valid_svg_files:
+        try:
+            # Skip files that have already been converted
+            if "-converted" in input_file:
+                continue
 
-# We think we should register some name spaces
-ET.register_namespace('',nameSpaces["w3"])
-ET.register_namespace("serif",nameSpaces["serif"])
-ET.register_namespace("shaper",nameSpaces["shaper"])
+            # Verify input file exists and is readable
+            if not os.path.isfile(input_file):
+                logging.error("Input file '%s' does not exist", input_file)
+                continue
 
-# validate global attributes
-if args.gblAttr:
-    gblShaperAttrs = args.gblAttr[0].split(" ")
-    for s in gblShaperAttrs:
-        if "shaper:" in s:
-            validate_shaper_attributes(s)
+            if not os.access(input_file, os.R_OK):
+                logging.error("No read permission for input file '%s'", input_file)
+                continue
 
-# Process each matching file
-for input_file in valid_svg_files:
-    try:
-        # Skip files that have already been converted
-        if "-converted" in input_file:
-            continue
-            
-        # Verify input file exists and is readable
-        if not os.path.isfile(input_file):
-            print(f"Error: Input file '{input_file}' does not exist")
-            continue
-            
-        if not os.access(input_file, os.R_OK):
-            print(f"Error: No read permission for input file '{input_file}'")
-            continue
-            
-        # Generate output filename
-        if args.outFile and len(args.inFile) == 1:
-            output_file = args.outFile
-        else:
-            # Split the filename and extension
-            base_name, ext = os.path.splitext(input_file)
-            filename = os.path.basename(base_name)
-            if args.outFile:  # args.outFile is a directory path
-                output_file = os.path.join(args.outFile, f"{filename}-converted{ext}")
+            # Generate output filename
+            if args.outFile and len(args.inFile) == 1:
+                output_file = args.outFile
             else:
-                output_file = f"{base_name}-converted{ext}"
+                # Split the filename and extension
+                base_name, ext = os.path.splitext(input_file)
+                filename = os.path.basename(base_name)
+                if args.outFile:  # args.outFile is a directory path
+                    output_file = os.path.join(args.outFile, f"{filename}-converted{ext}")
+                else:
+                    output_file = f"{base_name}-converted{ext}"
 
-        # Get the input file and parse the tree
-        print(f"Reading and parsing {input_file}....")
-        gblTree = ET.parse(input_file)
+            # Get the input file and parse the tree
+            logging.info("Reading and parsing %s", input_file)
+            gblTree = ET.parse(input_file)
 
-        # Process the current file
-        for elem in gblTree.iter():
-            # add the namespace
-            if "svg" in elem.tag[-3:]:
-                svg_add_xmlns(elem)
-            # group level? 
-            elif "g" in elem.tag[-1:]:
-                set_group_attributes(elem)
-            else:
-                # check and add the attributes
-                svg_add_attribute(elem)
-                
-        print(f"Writing {output_file}....")
-        gblTree.write(output_file)
+            # Process the current file
+            group_attrs = None
+            for elem in gblTree.iter():
+                name = local_name(elem)
+                if name == 'svg':
+                    svg_add_xmlns(elem)
+                elif name == 'g':
+                    group_attrs = set_group_attributes(elem)
+                else:
+                    svg_add_attribute(elem, group_attrs)
 
-    except ET.ParseError as e:
-        print(f"Error processing {input_file}: {e}")
-        continue
-    finally:
-        # Clean up global variables
-        gblTree = None
-        grpShaperAttrs = None
+            logging.info("Writing %s", output_file)
+            gblTree.write(output_file)
+
+        except ET.ParseError as e:
+            logging.error("Error processing %s: %s", input_file, e)
+            continue
+        finally:
+            # Clean up global variables
+            gblTree = None
+            grpShaperAttrs = None
+
+
+if __name__ == '__main__':
+    main()
