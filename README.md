@@ -52,8 +52,8 @@ Processing is performed by executing the Python script with command line options
         -i INFILE, --inFile INFILE
                         Input SVG file(s). Supports wildcards (e.g., *.svg).
         -o OUTFILE, --outFile OUTFILE
-                        Output file or directory (optional). If omitted, a
-                        '-converted.svg' file is created alongside the input.
+                Output file or directory (optional). If omitted, a
+                '-converted' file is created alongside the input.
         -g [GBLATTR ...], --gblAttr [GBLATTR ...]
                         Global shaper attributes to apply (optional).
 
@@ -97,7 +97,7 @@ Both tools support similar command-line options:
                          Input SVG file(s). Supports wildcards (e.g., *.svg).
     -o OUTFILE, --outFile OUTFILE
                          Output file or directory (optional). If omitted, a
-                         '-converted.svg' file is created alongside the input.
+                         '-converted' file is created alongside the input.
     -g [GBLATTR ...], --gblAttr [GBLATTR ...]
                          Global shaper attributes to apply (optional).
 

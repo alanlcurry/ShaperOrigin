@@ -60,7 +60,6 @@ import argparse
 import sys
 import glob
 import os.path
-import webcolors
 
 # XML namespaces used in SVG processing
 nameSpaces = {
@@ -68,26 +67,6 @@ nameSpaces = {
     "serif": "http://www.serif.com/",
     "shaper": "http://www.shapertools.com/namespaces/shaper"
 }
-
-def get_color_name_hex(hex_value):
-    try:
-        # Direct match
-        return webcolors.hex_to_name(hex_value)
-    except ValueError:
-        # No exact match → find closest color name
-        r, g, b = webcolors.hex_to_rgb(hex_value)
-        min_distance = float('inf')
-        closest_name = None
-
-        for name, candidate_hex in webcolors.CSS3_HEX_TO_NAMES.items():
-            cr, cg, cb = webcolors.hex_to_rgb(candidate_hex)
-            distance = (r - cr) ** 2 + (g - cg) ** 2 + (b - cb) ** 2  # Euclidean distance
-
-            if distance < min_distance:
-                min_distance = distance
-                closest_name = name
-
-        return closest_name
 
 
 def convert_attributes_to_id(elem):
