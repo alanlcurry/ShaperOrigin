@@ -60,6 +60,10 @@ import argparse
 import sys
 import glob
 import os.path
+import logging
+
+# Configure basic logging
+logging.basicConfig(level=logging.INFO)
 
 # XML namespaces used in SVG processing
 nameSpaces = {
@@ -67,6 +71,13 @@ nameSpaces = {
     "serif": "http://www.serif.com/",
     "shaper": "http://www.shapertools.com/namespaces/shaper"
 }
+
+def local_name(elem):
+    """Return the local tag name (without namespace)."""
+    tag = elem.tag
+    if isinstance(tag, str) and '}' in tag:
+        return tag.rsplit('}', 1)[-1]
+    return tag
 
 
 def convert_attributes_to_id(elem):
@@ -94,17 +105,17 @@ def convert_attributes_to_id(elem):
     for qname, value in elem.attrib.items():
         # Check if attribute is in shaper namespace
         if qname.startswith(shaper_ns):
-            # Get the local name without namespace
-            local_name = qname.split("}")[-1]
+            # Get the local name of the attribute without namespace
+            attr_local_name = qname.split("}")[-1]
             value = value.replace(" ", "")
             # Format as shaper:name=value
-            shaper_attrs.append(f"shaper:{local_name}={value}")
+            shaper_attrs.append(f"shaper:{attr_local_name}={value}")
             attrs_to_remove.append(qname)
     
     if shaper_attrs:
         # Create the new ID by joining all shaper attributes with spaces
         new_id = " ".join(shaper_attrs)
-        # Set the ID attribute directly
+        # Set the ID attribute directly (overwrites existing per design spec)
         elem.set("id", new_id)
         # Remove the original shaper attributes
         for attr in attrs_to_remove:
@@ -127,7 +138,7 @@ def process_svg(tree):
     # Process each element in the tree
     for elem in tree.iter():
         # Skip the root SVG element
-        if "svg" not in elem.tag[-3:]:
+        if local_name(elem).lower() != 'svg':
             # Convert shaper attributes to ID for non-root elements
             convert_attributes_to_id(elem)
             
@@ -143,6 +154,11 @@ def main():
     parser.add_argument("-i","--inFile",help="Input SVG file(s)",action="store",nargs='+',required=True)
     parser.add_argument("-o", "--outFile", help="Output SVG file (optional)", required=False)
     
+    # If no arguments are provided, show help and exit
+    if len(sys.argv) == 1:
+        parser.print_help(sys.stderr)
+        sys.exit(1)
+
     # read arguments from the command line
 
     args = parser.parse_args()
@@ -150,10 +166,10 @@ def main():
     # If multiple files and output is specified, it must be a directory
     if len(args.inFile) > 1 and args.outFile:
         if not os.path.isdir(args.outFile):
-            print("Error: When processing multiple files, output (-o) must be a directory")
+            logging.error("When processing multiple files, output (-o) must be a directory")
             sys.exit(1)
     
-    # Expand wildcards from input patterns
+    # Expand patterns from input
     expanded_files = []
     for pattern in args.inFile:
         expanded_files.extend(glob.glob(pattern))
@@ -164,15 +180,15 @@ def main():
         if f.lower().endswith('.svg'):
             valid_svg_files.append(f)
         else:
-            print(f"Warning: Skipping non-SVG file: {f}")
+            logging.warning("Skipping non-SVG file: %s", f)
 
     if not expanded_files:
-        print(f"Error: No files found matching the input pattern(s): {' '.join(args.inFile)}")
+        logging.error("No files found matching the input pattern(s): %s", ' '.join(args.inFile))
         sys.exit(1)
 
     # Check if there are any valid files to process
     if not valid_svg_files:
-        print(f"Error: No valid SVG files found to process.")
+        logging.error("No valid SVG files found to process.")
         sys.exit(1)
     
     # Register namespaces
@@ -189,11 +205,11 @@ def main():
             
             # Verify input file exists and is readable
             if not os.path.isfile(input_file):
-                print(f"Error: Input file '{input_file}' does not exist")
+                logging.error("Input file '%s' does not exist", input_file)
                 continue
             
             if not os.access(input_file, os.R_OK):
-                print(f"Error: No read permission for input file '{input_file}'")
+                logging.error("No read permission for input file '%s'", input_file)
                 continue
             
             # Generate output filename
@@ -209,17 +225,17 @@ def main():
                     output_file = f"{base_name}-converted{ext}"
             
             # Parse and process the SVG file
-            print(f"Reading and parsing {input_file}....")
+            logging.info("Reading and parsing %s....", input_file)
             tree = ET.parse(input_file)
         
             process_svg(tree)
             
             # Write the processed file
-            print(f"Writing {output_file}....")
+            logging.info("Writing %s....", output_file)
             tree.write(output_file)
             
         except ET.ParseError as e:
-            print(f"Error processing {input_file}: {e}")
+            logging.error("Error processing %s: %s", input_file, e)
             continue
 
 if __name__ == "__main__":
