@@ -34,11 +34,11 @@
 # - Allows global attributes to be applied via command line
 #
 # Usage: 
-#   ad2so-new.py [-h] -i INFILE [-o OUTFILE] [-g [GBLATTR ...]]
+#   ad2so.py [-h] -i INFILE [-o OUTFILE] [-g [GBLATTR ...]]
 #
 # Examples:
-#   python3 ad2so-new.py -i input.svg -o output.svg
-#   python3 ad2so-new.py -i input.svg -g shaper:cutDepth=15mm shaper:toolDia=0.25in
+#   python3 ad2so.py -i input.svg -o output.svg
+#   python3 ad2so.py -i input.svg -g shaper:cutDepth=15mm shaper:toolDia=0.25in
 #
 # Options:
 #   -h, --help            Show this help message and exit
@@ -49,7 +49,7 @@
 #   -g [GBLATTR ...], --gblAttr [GBLATTR ...]
 #                         Global shaper attributes to apply (optional)
 """
-ad2so-new.py: Enhanced conversion of Affinity Designer 2 SVGs for Shaper Origin.
+ad2so.py: Enhanced conversion of Affinity Designer 2 SVGs for Shaper Origin.
 This version improves group attribute inheritance using recursive processing.
 """
 
