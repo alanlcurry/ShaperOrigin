@@ -9,7 +9,7 @@ This Python tool processes SVG files exported from Affinity Designer 2 or Affini
 ## Key Components
 
 - `src/shaperorigin/af2so.py`: Affinity SVG to Shaper Origin attributes
-- `src/shaperorigin/ss2ad.py`: Shaper Studio SVG back to Affinity layer ids
+- `src/shaperorigin/ss2af.py`: Shaper Studio SVG back to Affinity layer ids
 - `src/shaperorigin/namespaces.py`: XML namespaces for SVG, Serif, Affinity, and Shaper tools
 - `src/shaperorigin/colors.py`: CSS3 color name matching
 - Global constants in `af2so.py`:

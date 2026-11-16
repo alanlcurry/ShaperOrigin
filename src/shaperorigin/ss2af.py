@@ -1,7 +1,7 @@
-"""Convert Shaper Studio SVGs back to Affinity Designer 2 layer ids.
+"""Convert Shaper Studio SVGs back to Affinity layer ids.
 
 Shaper attributes are concatenated into each element's ``id``, which Affinity
-Designer shows as the layer name.
+shows as the layer name.
 """
 
 import argparse
@@ -55,7 +55,7 @@ def main():
     """Parse arguments and convert each input SVG."""
     logging.basicConfig(level=logging.INFO)
 
-    parser = argparse.ArgumentParser(description="Convert Shaper Studio SVG to AD2 format")
+    parser = argparse.ArgumentParser(description="Convert Shaper Studio SVG to Affinity format")
     parser.add_argument("-i", "--inFile", help="Input SVG file(s)", action="store", nargs="+", required=True)
     parser.add_argument("-o", "--outFile", help="Output SVG file (optional)", required=False)
 

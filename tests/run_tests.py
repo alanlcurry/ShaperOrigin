@@ -10,7 +10,7 @@ for path in (ROOT, SRC):
     if path not in sys.path:
         sys.path.insert(0, path)
 
-from tests import test_helpers, test_ss2ad
+from tests import test_helpers, test_ss2af
 
 TESTS = [
     test_helpers.test_parse_style_empty,
@@ -23,9 +23,9 @@ TESTS = [
     test_helpers.test_affinity_layer_id_applied,
     test_helpers.test_serif_layer_id_still_applied,
     test_helpers.test_svg_add_xmlns_declares_both_affinity_namespaces,
-    test_ss2ad.test_convert_attributes_to_id,
-    test_ss2ad.test_convert_attributes_strips_spaces_in_values,
-    test_ss2ad.test_process_svg_skips_root,
+    test_ss2af.test_convert_attributes_to_id,
+    test_ss2af.test_convert_attributes_strips_spaces_in_values,
+    test_ss2af.test_process_svg_skips_root,
 ]
 
 failed = 0

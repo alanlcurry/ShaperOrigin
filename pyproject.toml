@@ -15,7 +15,7 @@ dependencies = ["webcolors>=1.16.0"]
 
 [project.scripts]
 af2so = "shaperorigin.af2so:main"
-ss2ad = "shaperorigin.ss2ad:main"
+ss2af = "shaperorigin.ss2af:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

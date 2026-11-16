@@ -7,7 +7,7 @@ if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
 from shaperorigin.namespaces import SHAPER_NS
-from shaperorigin.ss2ad import convert_attributes_to_id, process_svg
+from shaperorigin.ss2af import convert_attributes_to_id, process_svg
 
 FIXTURES = Path(__file__).resolve().parent / "fixtures"
 
