@@ -1,6 +1,6 @@
-# ad2so — Design Specification
+# af2so — Design Specification
 
-> Short summary: This document specifies the design, behaviour, interfaces, validation, and test strategy for the `ad2so.py` tool which converts Affinity Designer 2 (AD2) exported SVGs to include Shaper Origin attributes.
+> Short summary: This document specifies the design, behaviour, interfaces, validation, and test strategy for the `af2so` tool which converts Affinity Designer 2 and Affinity 3 exported SVGs to include Shaper Origin attributes.
 
 ---
 
@@ -21,19 +21,19 @@
 ---
 
 ## 1. Purpose & scope ✅
-- **Purpose:** Convert SVGs produced by Affinity Designer 2 so that CNC tooling (Shaper Origin) attributes (e.g., `shaper:cutDepth`, `shaper:cutType`, `shaper:toolDia`) are applied to the appropriate SVG elements.
+- **Purpose:** Convert SVGs produced by Affinity Designer 2 or Affinity 3 so that CNC tooling (Shaper Origin) attributes (e.g., `shaper:cutDepth`, `shaper:cutType`, `shaper:toolDia`) are applied to the appropriate SVG elements.
 - **Scope:**
-  - Parse `serif:id` layer names for `shaper:` attributes.
+  - Parse `serif:id` (Designer 2) or `affinity:id` (Affinity 3) layer names for `shaper:` attributes. When both are present, `serif:id` wins.
   - Map element styles (fill/stroke) to Shaper cut types.
   - Apply group-level attributes to descendants; apply global CLI-specified attributes where group/element attributes are absent.
-  - Preserve or add necessary namespaces (`xmlns:shaper` and `xmlns:serif`) on the root element.
+  - Declare `xmlns:shaper`, `xmlns:serif`, and `xmlns:affinity` on the root. Shaper Studio's webpage uses the serif namespace. Affinity 3 uses the affinity namespace.
 
 ---
 
 ## 2. Goals & non-goals 🎯 / ❌
 - **Goals:**
   - Correctly annotate SVG elements with `shaper:` attributes.
-  - Preserve `xmlns:serif` and `xmlns:shaper` in the output.
+  - Declare `xmlns:serif`, `xmlns:affinity`, and `xmlns:shaper` on the output.
   - Provide clear CLI interface and robust validation + warnings (non-blocking).
   - Keep code readable and testable with small helpers and limited global state.
 - **Non-goals:**
@@ -43,21 +43,22 @@
 ---
 
 ## 3. Terminology 📚
-- **AD2:** Affinity Designer 2
-- **`serif:id`:** Attribute where AD2 stores layer metadata
-- **`shaper:*`:** Namespaced attributes consumed by Shaper Origin workflow (e.g., `shaper:cutType`)
+- **AD2:** Affinity Designer 2. Stores the layer name in `serif:id` (`http://www.serif.com/`).
+- **Affinity 3:** Affinity Studio. Stores the layer name in `affinity:id` (`https://www.affinity.studio/`).
+- **`shaper:*`:** Namespaced attributes consumed by Shaper Origin workflow (e.g., `shaper:cutType`).
 
 ---
 
 ## 4. High-level architecture & components 🔧
-- **Entry:** `ad2so.py::main()` — CLI parsing and per-file orchestration.
+- **Entry:** `af2so.py::main()` — CLI parsing and per-file orchestration.
 - **Helpers:**
   - `local_name(elem)` — get local tag name.
   - `parse_style(style_str)` — parse `style` into a dict.
-  - `set_group_attributes(elem)` — extract group `shaper:` attrs (returns list or `None`), sets UUID, removes `serif:id`.
-  - `svg_add_layer_attributes(elem)` — add `shaper:` attrs from `serif:id` on the element.
+  - `layer_id(elem)` — read `serif:id`, otherwise `affinity:id`.
+  - `set_group_attributes(elem)` — extract group `shaper:` attrs (returns list or `None`), sets UUID, removes both layer ids.
+  - `svg_add_layer_attributes(elem)` — add `shaper:` attrs from the layer id on the element.
   - `svg_convert_attribute(elem)` — map fill/stroke to `shaper:cutType`, set `fill` and `stroke-width` and new `id`.
-  - `svg_add_xmlns(elem)` — ensure `xmlns:shaper` and `xmlns:serif` exist on root.
+  - `svg_add_xmlns(elem)` — ensure `xmlns:shaper`, `xmlns:serif`, and `xmlns:affinity` exist on root.
 - **Global:** minimal module-level global `gblShaperAttrs` for CLI-provided shaper attributes.
 - **Logging:** Uses `logging` for info/warnings.
 
@@ -71,23 +72,23 @@ Per file:
    - If root (`svg`) → `svg_add_xmlns`.
    - If group (`g`) → `set_group_attributes()` and capture `group_attrs`.
    - Else (shape) → `svg_add_attribute(elem, group_attrs)` which:
-     - Adds `serif:id` layer attributes if present
+     - Adds layer attributes from `serif:id` or `affinity:id` if present
      - Applies `group_attrs` if present
      - Applies `gblShaperAttrs` (global) if attributes are still missing
      - Converts style to `shaper:cutType`, sets `fill` and `stroke-width`, generates UUID id.
 4. Write tree via `ElementTree.write()`.
 
 Notes:
-- `serif:id` is removed during processing (UUID added instead).
-- The root keeps `xmlns:serif` even if `serif:id` attributes are removed.
+- `serif:id` and `affinity:id` are removed during processing (UUID added instead).
+- The root declares `xmlns:serif` and `xmlns:affinity` even after those layer ids are removed. Shaper Studio's webpage uses `xmlns:serif`.
 
 ---
 
 ## 6. CLI & configuration ⚙️
 - Example usages:
-  - `python3 ad2so.py -i input.svg`
-  - `python3 ad2so.py -i input.svg -o output.svg`
-  - `python3 ad2so.py -i "dir/*.svg" -g "shaper:cutDepth=50mm shaper:toolDia=8mm"`
+  - `af2so -i input.svg`
+  - `af2so -i input.svg -o output.svg`
+  - `af2so -i "dir/*.svg" -g "shaper:cutDepth=50mm shaper:toolDia=8mm"`
 - `-i/--inFile` supports glob patterns.
 - `-o/--outFile` optional. If multiple inputs are provided, `-o` must be a directory.
 - `-g/--gblAttr` accepts multiple tokens or a single quoted string with tokens; parsed into `gblShaperAttrs`.
@@ -105,7 +106,7 @@ Notes:
 - **Guaranteed:**
   - Processed elements receive UUIDs in `id`.
   - `shaper:` attributes are present from layer/group/global rules.
-  - `xmlns:shaper` and `xmlns:serif` present on root.
+  - `xmlns:shaper`, `xmlns:serif`, and `xmlns:affinity` present on root.
 - **Not preserved:**
   - XML declaration and DOCTYPE are not preserved by ElementTree-based flow.
 - **Improvement option:**
@@ -133,7 +134,7 @@ Notes:
 ---
 
 ## 11. Acceptance criteria ✔️
-- Running `python3 ad2so.py -i Example.svg -o out.svg -g "shaper:cutDepth=50mm shaper:toolDia=8mm"` produces:
+- Running `af2so -i Example.svg -o out.svg -g "shaper:cutDepth=50mm shaper:toolDia=8mm"` produces:
   - `xmlns:serif` and `xmlns:shaper` on root
   - Elements lacking `serif:` shaper attributes have `shaper:cutDepth="50mm"` (global applied)
   - All shapes have `shaper:cutType` and `stroke-width="0.1"`

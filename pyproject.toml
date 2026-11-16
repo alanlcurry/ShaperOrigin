@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "shaperorigin"
+version = "0.1.0"
+description = "Convert SVG files between Affinity and Shaper Origin/Studio"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{name = "Alan L. Curry"}]
+dependencies = ["webcolors>=1.16.0"]
+
+[project.scripts]
+af2so = "shaperorigin.af2so:main"
+ss2ad = "shaperorigin.ss2ad:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

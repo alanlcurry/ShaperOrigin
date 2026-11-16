@@ -4,15 +4,17 @@ This document provides essential context for AI agents working with the ShaperOr
 
 ## Project Overview
 
-This Python tool processes SVG files exported from Affinity Designer 2 (AD2) to add Shaper Origin-specific attributes for CNC machining. The tool reads layer names containing `shaper:` attributes from AD2 and applies them to SVG elements.
+This Python tool processes SVG files exported from Affinity Designer 2 or Affinity 3 to add Shaper Origin-specific attributes for CNC machining. Designer 2 stores layer names in `serif:id`. Affinity 3 stores them in `affinity:id`. Output declares both namespaces. Shaper Studio's webpage uses the serif namespace.
 
 ## Key Components
 
-- `ad2so.py`: Main script that processes SVG files
-- Global constants:
+- `src/shaperorigin/af2so.py`: Affinity SVG to Shaper Origin attributes
+- `src/shaperorigin/ss2ad.py`: Shaper Studio SVG back to Affinity layer ids
+- `src/shaperorigin/namespaces.py`: XML namespaces for SVG, Serif, Affinity, and Shaper tools
+- `src/shaperorigin/colors.py`: CSS3 color name matching
+- Global constants in `af2so.py`:
   - `gblShaperAttrNames`: Valid Shaper attribute names (`cutDepth`, `toolDia`, `cutOffset`, `cutType`)
   - `gblShaperCutTypes`: Valid cut types (`guide`, `inside`, `outside`, `pocket`)
-  - `nameSpaces`: XML namespaces for SVG, Serif, and Shaper tools
 
 ## Core Workflows
 
@@ -20,7 +22,7 @@ This Python tool processes SVG files exported from Affinity Designer 2 (AD2) to 
 
 1. Files are processed using command line arguments:
 ```bash
-python3 ad2so.py -i input.svg -o output.svg [-g shaper:attribute=value ...]
+af2so -i input.svg -o output.svg [-g shaper:attribute=value ...]
 ```
 
 2. Key processing steps:
@@ -72,4 +74,4 @@ python3 ad2so.py -i input.svg -o output.svg [-g shaper:attribute=value ...]
    - Namespace preservation
    - Attribute inheritance (global → group → layer)
 
-For questions or improvements, consult the examples in the README.md or review similar patterns in `ad2so.py`.
+For questions or improvements, consult the examples in the README.md or review similar patterns in `src/shaperorigin/af2so.py`.

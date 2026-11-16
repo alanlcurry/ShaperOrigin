@@ -1,15 +1,21 @@
 # **Note: This project is not affiliated with Shaper Tools.**
 
-# Affinity Designer 2 and Shaper Origin/Studio Integration Tools
+# Affinity and Shaper Origin/Studio Integration Tools
 
-This repository contains two tools for working with SVG files between Affinity Designer 2 (AD2) and Shaper Studio:
+This repository contains two tools for working with SVG files between Affinity (Designer 2 and Affinity 3) and Shaper Studio:
 
-- `ad2so.py`: Converts AD2 SVG files to Shaper Origin format
-- `ss2ad.py`: Converts Shaper Studio SVG files back to AD2 format
+- `af2so`: Converts Affinity SVG files to Shaper Origin format
+- `ss2ad`: Converts Shaper Studio SVG files back to Affinity layer ids
 
-## ad2so.py - AD2 to Shaper Origin Converter
+Install the package so both commands are on your path:
 
-`ad2so.py` applies Shaper Origin attributes to an Affinity Designer 2 exported SVG file. This tool was inspired by the Shaper Community forum thread [Depth encoding via Fusion360 (PLEASE LOCK THREAD)](https://community.shapertools.com/t/depth-encoding-via-fusion360-please-lock-thread/10075)
+```bash
+pip install -e .
+```
+
+## af2so - Affinity to Shaper Origin Converter
+
+`af2so` applies Shaper Origin attributes to an SVG exported from Affinity Designer 2 or Affinity 3. Designer 2 stores the layer name in `serif:id` (`http://www.serif.com/`). Affinity 3 stores it in `affinity:id` (`https://www.affinity.studio/`). The converter reads either attribute. Output always declares both `xmlns:serif` and `xmlns:affinity`. Shaper Studio's webpage renders with the serif namespace. This tool was inspired by the Shaper Community forum thread [Depth encoding via Fusion360 (PLEASE LOCK THREAD)](https://community.shapertools.com/t/depth-encoding-via-fusion360-please-lock-thread/10075)
 
 ### Specifing Attributes in Affinity Designer 2
 
@@ -17,11 +23,11 @@ To specify a Shaper Origin attribute, the attribute name and value is added to t
 
 ![AD2 Layers](img/layers.png)
 
-When AD2 exports to SVG, the layer name is used as the id of the element and attribute serif:id is added with the layer name. Example:
+When Affinity exports to SVG, the layer name is stored in `serif:id` (Designer 2) or `affinity:id` (Affinity 3). Example for Designer 2:
 
     <path id="Triangle---shaper:cutDepth-20mm" serif:id="Triangle - shaper:cutDepth=20mm" d="M1258.58,113.386L1383.31,340.157L1133.86,340.157L1258.58,113.386Z" style="fill:rgb(231,232,233);"/>
 
-When processing the AD2 exported SVG file, ad2so.py searches each element for all occurances of shaper: in the serif:id attribute. If found, the shaper: attribute(s) is added to the element.<br>
+When processing the exported SVG file, af2so searches each element for `shaper:` tokens in `serif:id` or `affinity:id`. If found, the shaper attribute(s) are added to the element.<br>
 Example (scroll all the way to the right to see the shaper: attribute):
 
     <path id="Triangle---shaper:cutDepth-20mm" serif:id="Triangle - shaper:cutDepth=20mm" d="M1258.58,113.386L1383.31,340.157L1133.86,340.157L1258.58,113.386Z" style="fill:rgb(231,232,233);" shaper:cutDepth="20mm" />
@@ -60,21 +66,21 @@ Processing is performed by executing the Python script with command line options
 Example invocations: 
 
     Single file processing:
-        python3 ad2so.py -i Example.svg -o Example-Converted.svg      
+        af2so -i Example.svg -o Example-Converted.svg      
 
     With global attributes:
-        python3 ad2so.py -i Example.svg -o Example-Converted.svg -g shaper:cutDepth=15mm
+        af2so -i Example.svg -o Example-Converted.svg -g shaper:cutDepth=15mm
 
     Multiple global attributes:
-        python3 ad2so.py -i Example.svg -o Example-Converted.svg -g "shaper:cutDepth=15mm" "shaper:toolDia=0.25in"
+        af2so -i Example.svg -o Example-Converted.svg -g "shaper:cutDepth=15mm" "shaper:toolDia=0.25in"
 
     Process multiple files using wildcards:
-        python3 ad2so.py -i *.svg               # Creates *-converted.svg for each file
-        python3 ad2so.py -i *.svg -o output_dir # Saves converted files in output_dir
+        af2so -i *.svg               # Creates *-converted.svg for each file
+        af2so -i *.svg -o output_dir # Saves converted files in output_dir
 
-## ss2ad.py - Shaper Studio to AD2 Converter
+## ss2ad - Shaper Studio to AD2 Converter
 
-`ss2ad.py` converts Shaper Studio SVG files back to Affinity Designer 2 format. It takes any shaper: attributes in the SVG file and concatenates them into the ID field, making them readable in AD2's layer panel.
+`ss2ad` converts Shaper Studio SVG files back to Affinity Designer 2 format. It takes any shaper: attributes in the SVG file and concatenates them into the ID field, making them readable in AD2's layer panel.
 
 For example, it converts:
 
@@ -90,7 +96,7 @@ This preserves the Shaper Studio settings while making them visible and editable
 
 Both tools support similar command-line options:
 
-### ad2so.py Options
+### af2so Options
 
     -h, --help            Show this help message and exit
     -i INFILE, --inFile INFILE
@@ -101,7 +107,7 @@ Both tools support similar command-line options:
     -g [GBLATTR ...], --gblAttr [GBLATTR ...]
                          Global shaper attributes to apply (optional).
 
-### ss2ad.py Options
+### ss2ad Options
 
     -h, --help            Show this help message and exit
     -i INFILE, --inFile INFILE
@@ -115,30 +121,30 @@ Both tools support similar command-line options:
 Single file processing:
 ```bash
 # Convert from AD2 to Shaper Origin
-python3 ad2so.py -i Example.svg -o Example-Shaper.svg
+af2so -i Example.svg -o Example-Shaper.svg
 
 # Convert from Shaper Studio back to AD2
-python3 ss2ad.py -i Example-Shaper.svg -o Example-AD2.svg
+ss2ad -i Example-Shaper.svg -o Example-AD2.svg
 ```
 
 Process multiple files using wildcards:
 ```bash
 # Convert all SVG files in the current directory to Shaper Origin format
-python3 ad2so.py -i *.svg
-python3 ad2so.py -i *.svg -o output_dir
+af2so -i *.svg
+af2so -i *.svg -o output_dir
 
 # Convert all Shaper Studio files in the current directory back to AD2 format
-python3 ss2ad.py -i *.svg
-python3 ss2ad.py -i *.svg -o output_dir
+ss2ad -i *.svg
+ss2ad -i *.svg -o output_dir
 ```
 
-With global attributes (ad2so.py only):
+With global attributes (af2so only):
 ```bash
 # Single global attribute
-python3 ad2so.py -i Example.svg -o Example-Converted.svg -g shaper:cutDepth=15mm
+af2so -i Example.svg -o Example-Converted.svg -g shaper:cutDepth=15mm
 
 # Multiple global attributes
-python3 ad2so.py -i Example.svg -o Example-Converted.svg -g shaper:cutDepth=15mm shaper:toolDia=0.25in
+af2so -i Example.svg -o Example-Converted.svg -g shaper:cutDepth=15mm shaper:toolDia=0.25in
 ```
 
 ### Auto-naming Convention
@@ -149,9 +155,9 @@ When processing files, both programs automatically:
 - When using wildcards without -o, create files in the same directory as input
 - When using wildcards with -o, save files in the specified directory
 
-### Color to Cut Type Mapping (ad2so.py only)
+### Color to Cut Type Mapping (af2so only)
 
-The ad2so.py program automatically maps colors to Shaper cut types:
+The af2so program automatically maps colors to Shaper cut types:
 - Black → outside
 - White → inside
 - Grey → pocket
