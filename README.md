@@ -223,3 +223,9 @@ The af2so program automatically maps colors to Shaper cut types:
 - None+Grey → online
 - Dodger Blue → guide
 - Red → anchor
+
+## License
+
+This project is licensed under the GNU General Public License v3.0 or later (`GPL-3.0-or-later`). See [LICENSE](LICENSE).
+
+Versions released before this change were MIT. Copies already shared under MIT stay under MIT.

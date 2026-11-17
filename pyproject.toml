@@ -8,7 +8,7 @@ version = "0.1.0"
 description = "Convert SVG files between Affinity and Shaper Origin/Studio"
 readme = "README.md"
 requires-python = ">=3.11"
-license = "MIT"
+license = "GPL-3.0-or-later"
 license-files = ["LICENSE"]
 authors = [{name = "Alan L. Curry"}]
 dependencies = ["webcolors>=1.16.0"]
